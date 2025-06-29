@@ -21,6 +21,9 @@ __pycache__/
 *.swp
 *.swo
 
+# Ignore image files (generated graphs)
+*.png
+
 # Ignore OS files
 .DS_Store
 Thumbs.db 
