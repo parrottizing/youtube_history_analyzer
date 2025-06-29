@@ -1,0 +1,26 @@
+# Ignore CSV files (data output)
+*.csv
+
+# Ignore text files (data input)
+*.txt
+
+# Ignore environment files (sensitive configuration)
+*.env
+.env*
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db 
