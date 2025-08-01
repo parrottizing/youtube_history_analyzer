@@ -131,10 +131,15 @@ def create_youtube_graphs():
         
         language_counts = video_df['Language'].value_counts()
         
+        # Обеспечиваем правильный порядок значений и меток
+        russian_count = language_counts.get('Russian', 0)
+        english_count = language_counts.get('English', 0)
+        
+        values = [russian_count, english_count]
         colors_pie = ['#FF6B6B', '#4ECDC4']
         labels = ['🇷🇺 Русский', '🇺🇸 English']
         
-        wedges, texts, autotexts = plt.pie(language_counts.values, 
+        wedges, texts, autotexts = plt.pie(values, 
                                           labels=labels,
                                           colors=colors_pie,
                                           autopct='%1.1f%%',
@@ -157,8 +162,6 @@ def create_youtube_graphs():
         
         # Статистика
         total_videos = len(video_df)
-        russian_count = language_counts.get('Russian', 0)
-        english_count = language_counts.get('English', 0)
         
         stats_text = f"Всего видео: {total_videos}\n🇷🇺 Русский: {russian_count}\n🇺🇸 English: {english_count}"
         plt.text(1.3, 0.5, stats_text, fontsize=11, 
