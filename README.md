@@ -60,7 +60,16 @@ python add_language_column.py
 **Output**: `youtube_history_with_language.csv`  
 **Method**: Uses regex to detect Cyrillic characters for Russian content
 
-#### 4. `add_categories.py`
+#### 4. `analyze_by_channels.py`
+**Purpose**: Groups videos by channel with comprehensive statistics
+```bash
+python analyze_by_channels.py
+```
+**Outputs**:
+- `channel_analysis.csv`: Summary statistics per channel
+- `videos_by_channel.csv`: Detailed video listings grouped by channel
+
+#### 5. `add_categories.py`
 **Purpose**: AI-powered categorization of channels using Google Gemini
 ```bash
 python add_categories.py
@@ -75,15 +84,6 @@ python add_categories.py
 - Exponential backoff for rate limit handling
 
 ### Analysis Scripts
-
-#### 5. `analyze_by_channels.py`
-**Purpose**: Groups videos by channel with comprehensive statistics
-```bash
-python analyze_by_channels.py
-```
-**Outputs**:
-- `channel_analysis.csv`: Summary statistics per channel
-- `videos_by_channel.csv`: Detailed video listings grouped by channel
 
 #### 6. `create_graphs.py`
 **Purpose**: Generates channel and language visualization graphs
@@ -150,8 +150,8 @@ Execute scripts in order:
 python parser.py
 python remove_duplicates.py
 python add_language_column.py
-python add_categories.py
 python analyze_by_channels.py
+python add_categories.py
 python create_graphs.py
 python create_category_graphs.py
 ```
