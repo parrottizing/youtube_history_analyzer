@@ -88,7 +88,7 @@ python add_categories.py
 ```
 **Input**: `youtube_history_with_language.csv`  
 **Output**: `youtube_history_with_categories.csv {timestamp}.csv`  
-**Categories**: AI, F1, Football, Basketball, News, Humor, Popular Science, History, Superheroes, Other
+**Categories**: AI and coding, F1, Football, Basketball, News, Humor, Popular Science, History, Superheroes, Other
 
 **🚀 Smart Caching System:**
 - **Cache File**: `channel_categories.json` - stores channel-to-category mappings
@@ -306,13 +306,13 @@ YouTube_history_analyzer/
 ### Example Category Breakdown
 ```
 📺 By Video Count:
-   AI: 22 videos (🇷🇺 0 | 🇺🇸 22)
+   AI and coding: 22 videos (🇷🇺 0 | 🇺🇸 22)
    F1: 10 videos (🇷🇺 6 | 🇺🇸 4)
    FOOTBALL: 7 videos (🇷🇺 7 | 🇺🇸 0)
    HISTORY: 6 videos (🇷🇺 6 | 🇺🇸 0)
 
 ⏱️ By Watch Time:
-   AI: 5h 50m (🇷🇺 0m | 🇺🇸 5h 50m)
+   AI and coding: 5h 50m (🇷🇺 0m | 🇺🇸 5h 50m)
    F1: 4h 29m (🇷🇺 3h 55m | 🇺🇸 33m)
    NEWS: 3h 24m (🇷🇺 3h 24m | 🇺🇸 0m)
 ```
@@ -342,7 +342,7 @@ YouTube_history_analyzer/
 ### Adding Categories
 Modify the category list in `add_categories.py`:
 ```python
-valid_categories = ['AI', 'F1', 'Football', 'Basketball', 'News', 'Humor', 'Popular Science', 'History', 'Superheroes', 'Other', 'YOUR_CATEGORY']
+valid_categories = ['AI and coding', 'F1', 'Football', 'Basketball', 'News', 'Humor', 'Popular Science', 'History', 'Superheroes', 'Other', 'YOUR_CATEGORY']
 ```
 
 ### Visualization Colors
@@ -363,7 +363,7 @@ df = df[df['Date'] > '2024-01-01']  # Analyze recent data only
 The categorization system uses `channel_categories.json` to store channel-to-category mappings:
 ```json
 {
-  "OpenAI": "AI",
+  "OpenAI": "AI and coding",
   "Гаснут Огни": "F1", 
   "Портье Дрогба": "FOOTBALL"
 }

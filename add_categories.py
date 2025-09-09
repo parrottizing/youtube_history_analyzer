@@ -114,7 +114,7 @@ Video Titles:
 {titles_text}
 
 Based on the channel name and video titles, categorize this channel into ONE of these categories ONLY:
-AI, F1, Football, Basketball, News, Humor, Popular Science, History, Superheroes, Other
+AI and coding, F1, Football, Basketball, News, Humor, Popular Science, History, Superheroes, Other
 
 Answer with only ONE WORD from the list above. No explanation, no additional text.
 
@@ -128,7 +128,7 @@ Category:"""
             category = response.text.strip().upper()
             
             # Проверяем, что ответ в списке допустимых категорий
-            valid_categories = ['AI', 'F1', 'FOOTBALL', 'BASKETBALL', 'NEWS', 'HUMOR', 'POPULAR SCIENCE', 'HISTORY', 'SUPERHEROES', 'OTHER']
+            valid_categories = ['AI AND CODING', 'F1', 'FOOTBALL', 'BASKETBALL', 'NEWS', 'HUMOR', 'POPULAR SCIENCE', 'HISTORY', 'SUPERHEROES', 'OTHER']
             
             if category in valid_categories:
                 if attempt > 1:
