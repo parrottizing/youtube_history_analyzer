@@ -41,6 +41,7 @@ python parser.py
 - Handles "Mark as watched" lines that appear between video entries
 - Extracts video titles, channel names, and durations
 - Robust error handling for malformed entries
+- Supports both English and Russian history exports: detects "Now playing" and "Текущее видео"
 
 #### 2. `remove_duplicates.py`
 **Purpose**: Identifies and removes duplicate video entries
@@ -138,18 +139,28 @@ GEMINI_API_KEY=your_api_key_here
 ```
 
 ### 2. Input Data
-Place your YouTube history in `history.txt` format:
+Place your YouTube history in `history.txt` format.
+
+Supported markers for video blocks:
+- English export: `Now playing`
+- Russian export: `Текущее видео`
+
+Examples:
 ```
 Now playing
 Video Title Here
 Channel Name Here
-Duration: MM:SS
+MM:SS
 
 Now playing
 Another Video Title
 Another Channel
-Duration: H:MM:SS
+H:MM:SS
 ```
+
+Troubleshooting:
+- If no videos are found, ensure your export contains one of the supported markers above
+- Ensure `history.txt` is saved to disk before running via Docker (mounted as read-only)
 
 ### 3. Run the Pipeline
 
@@ -170,6 +181,11 @@ Docker setup includes:
 - 🔒 Isolated environment
 - 📁 Automatic output directory mapping
 - 🚀 One-command execution
+
+Notes:
+- The container reads `history.txt` and `.env` from your host via read-only mounts
+- Outputs (CSVs/PNGs) are written to the `output/` directory on your host
+- If you changed `history.txt` in your editor, make sure it is saved before running Docker
 
 #### Option B: Automated Pipeline (Local)
 Run the complete pipeline with a single command:
@@ -298,6 +314,7 @@ YouTube_history_analyzer/
 - Validates API responses against expected categories
 - Handles malformed duration strings
 - Graceful fallbacks for parsing errors
+- Recognizes both English and Russian history formats ("Now playing" / "Текущее видео")
 
 ## 🎨 Customization
 
