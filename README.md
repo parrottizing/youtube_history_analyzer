@@ -76,7 +76,7 @@ python add_categories.py
 ```
 **Input**: `youtube_history_with_language.csv`  
 **Output**: `youtube_history_with_categories.csv`  
-**Categories**: AI, F1, Football, Basketball, News, Humor, Popular Science, History, Other
+**Categories**: AI, F1, Football, Basketball, News, Humor, Popular Science, History, Superheroes, Other
 **Features**:
 - Uses Gemini 2.0 Flash with temperature 0 for consistent categorization
 - Respects API rate limits (15 RPM for free tier)
@@ -109,16 +109,23 @@ python check_categories.py
 
 ## 📋 Requirements
 
+### Docker (Recommended)
+- Docker
+- Docker Compose
+
+### Local Installation
 ```txt
-pandas
-matplotlib
-google-generativeai
-python-dotenv
-regex
+pandas>=2.0.0
+matplotlib>=3.5.0
+google-generativeai>=0.3.0
+python-dotenv>=1.0.0
+numpy>=1.21.0
 ```
 
 Install dependencies:
 ```bash
+pip install -r requirements.txt
+# or manually:
 pip install pandas matplotlib google-generativeai python-dotenv
 ```
 
@@ -145,7 +152,40 @@ Duration: H:MM:SS
 ```
 
 ### 3. Run the Pipeline
-Execute scripts in order:
+
+#### Option A: Using Docker (Recommended)
+The easiest way to run the analyzer without installing dependencies:
+
+```bash
+# Build and run with docker-compose
+docker-compose up --build
+
+# Or build manually
+docker build -t youtube-analyzer .
+docker run -v $(pwd)/history.txt:/app/history.txt:ro -v $(pwd)/.env:/app/.env:ro -v $(pwd)/output:/app/output youtube-analyzer
+```
+
+Docker setup includes:
+- ✅ All dependencies pre-installed
+- 🔒 Isolated environment
+- 📁 Automatic output directory mapping
+- 🚀 One-command execution
+
+#### Option B: Automated Pipeline (Local)
+Run the complete pipeline with a single command:
+```bash
+python run_pipeline.py
+```
+
+This script will:
+- ✅ Check prerequisites (history.txt and .env files)
+- 🔄 Execute all 7 pipeline steps in correct order
+- 📊 Provide progress feedback and timing information
+- ❌ Stop on errors with clear error messages
+- 🎉 Display summary of generated files
+
+#### Option C: Manual Execution
+Execute scripts individually in order:
 ```bash
 python parser.py
 python remove_duplicates.py
@@ -161,6 +201,7 @@ python create_category_graphs.py
 ```
 YouTube_history_analyzer/
 ├── 📄 Core Scripts
+│   ├── run_pipeline.py               # 🚀 Run complete pipeline
 │   ├── parser.py                     # Parse raw history
 │   ├── remove_duplicates.py          # Remove duplicate entries
 │   ├── add_language_column.py        # Add language detection
@@ -191,6 +232,12 @@ YouTube_history_analyzer/
 │   ├── .gitignore                    # Git ignore patterns
 │   ├── .env                          # API keys (git-ignored)
 │   └── README.md                     # This file
+│
+├── 🐳 Docker Files
+│   ├── Dockerfile                    # Docker image definition
+│   ├── docker-compose.yml            # Docker compose configuration
+│   ├── .dockerignore                 # Docker ignore patterns
+│   └── requirements.txt              # Python dependencies
 ```
 
 ## 🎯 Key Features & Innovations
@@ -257,7 +304,7 @@ YouTube_history_analyzer/
 ### Adding Categories
 Modify the category list in `add_categories.py`:
 ```python
-valid_categories = ['AI', 'F1', 'Football', 'Basketball', 'News', 'Humor', 'Popular Science', 'History', 'Other', 'YOUR_CATEGORY']
+valid_categories = ['AI', 'F1', 'Football', 'Basketball', 'News', 'Humor', 'Popular Science', 'History', 'Superheroes', 'Other', 'YOUR_CATEGORY']
 ```
 
 ### Visualization Colors

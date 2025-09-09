@@ -1,6 +1,13 @@
 import csv
+import sys
 from collections import defaultdict
 import re
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 def parse_duration(duration_str):
     """
@@ -97,7 +104,7 @@ def analyze_channels(input_file='youtube_history_with_language.csv'):
         print("=" * 80)
         
         # Выводим топ каналов
-        print("\n📊 ТОП КАНАЛОВ ПО КОЛИЧЕСТВУ ПРОСМОТРЕННЫХ ВИДЕО:")
+        print("\nТОП КАНАЛОВ ПО КОЛИЧЕСТВУ ПРОСМОТРЕННЫХ ВИДЕО:")
         print("-" * 80)
         
         total_videos = sum(data['video_count'] for _, data in sorted_channels)
@@ -108,9 +115,9 @@ def analyze_channels(input_file='youtube_history_with_language.csv'):
             languages_str = ', '.join(sorted(data['languages']))
             
             print(f"{i:2d}. {channel}")
-            print(f"    📹 Видео: {data['video_count']} ({percentage:.1f}%)")
-            print(f"    ⏱️  Время: {format_duration(data['total_duration'])}")
-            print(f"    🌐 Языки: {languages_str}")
+            print(f"    Видео: {data['video_count']} ({percentage:.1f}%)")
+            print(f"    Время: {format_duration(data['total_duration'])}")
+            print(f"    Языки: {languages_str}")
             print()
         
         # Сохраняем детальный отчет в CSV
@@ -139,7 +146,7 @@ def analyze_channels(input_file='youtube_history_with_language.csv'):
                     f"{percentage:.1f}%"
                 ])
         
-        print(f"📄 Детальный отчет сохранен в файле '{output_file}'")
+        print(f"Детальный отчет сохранен в файле '{output_file}'")
         
         # Сохраняем подробный список видео по каналам
         detailed_file = 'videos_by_channel.csv'
@@ -161,10 +168,10 @@ def analyze_channels(input_file='youtube_history_with_language.csv'):
                         video['language']
                     ])
         
-        print(f"📄 Подробный список видео сохранен в файле '{detailed_file}'")
+        print(f"Подробный список видео сохранен в файле '{detailed_file}'")
         
         # Статистика по языкам
-        print(f"\n📈 ОБЩАЯ СТАТИСТИКА:")
+        print(f"\nОБЩАЯ СТАТИСТИКА:")
         print("-" * 40)
         print(f"Всего каналов: {len(sorted_channels)}")
         print(f"Всего видео: {total_videos}")
@@ -179,17 +186,17 @@ def analyze_channels(input_file='youtube_history_with_language.csv'):
                 language_stats[lang]['videos'] += 1
                 language_stats[lang]['time'] += video['duration_seconds']
         
-        print(f"\n🌐 СТАТИСТИКА ПО ЯЗЫКАМ:")
+        print(f"\nСТАТИСТИКА ПО ЯЗЫКАМ:")
         print("-" * 40)
         for lang, stats in language_stats.items():
             print(f"{lang}:")
-            print(f"  📹 Видео: {stats['videos']}")
-            print(f"  📺 Каналы: {len(stats['channels'])}")
-            print(f"  ⏱️  Время: {format_duration(stats['time'])}")
+            print(f"  Видео: {stats['videos']}")
+            print(f"  Каналы: {len(stats['channels'])}")
+            print(f"  Время: {format_duration(stats['time'])}")
             print()
         
         # Показываем каналы с наибольшим временем просмотра
-        print(f"\n⏰ ТОП КАНАЛОВ ПО ВРЕМЕНИ ПРОСМОТРА:")
+        print(f"\nТОП КАНАЛОВ ПО ВРЕМЕНИ ПРОСМОТРА:")
         print("-" * 50)
         sorted_by_time = sorted(channels_data.items(), 
                               key=lambda x: x[1]['total_duration'], 
@@ -198,8 +205,8 @@ def analyze_channels(input_file='youtube_history_with_language.csv'):
         for i, (channel, data) in enumerate(sorted_by_time[:5], 1):
             time_percentage = (data['total_duration'] / total_watch_time) * 100
             print(f"{i}. {channel}")
-            print(f"   ⏱️  {format_duration(data['total_duration'])} ({time_percentage:.1f}%)")
-            print(f"   📹 {data['video_count']} видео")
+            print(f"   {format_duration(data['total_duration'])} ({time_percentage:.1f}%)")
+            print(f"   {data['video_count']} видео")
             print()
             
     except FileNotFoundError:

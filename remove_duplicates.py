@@ -1,5 +1,12 @@
 import csv
+import sys
 import pandas as pd
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 def remove_duplicates(input_file='youtube_history.csv', output_file='youtube_history_clean.csv'):
     """

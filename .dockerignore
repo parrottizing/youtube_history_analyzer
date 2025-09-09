@@ -1,0 +1,50 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+CLAUDE.md
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Output files (will be generated in container)
+*.csv
+*.png
+output/
+
+# Analysis directories
+June analysys/
+
+# History files (except the main one)
+history_*.txt
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml

@@ -5,8 +5,15 @@ import pandas as pd
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
+import sys
 import time
 from collections import defaultdict
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 def setup_gemini():
     """Настройка Gemini API"""
@@ -65,10 +72,10 @@ Category:"""
             
             if category in valid_categories:
                 if attempt > 1:
-                    print(f"✅ Успешно получили категорию после {attempt} попыток")
+                    print(f"Успешно получили категорию после {attempt} попыток")
                 return category
             else:
-                print(f"⚠️  Gemini вернул неожиданную категорию '{category}' для канала '{channel_name}'. Пробуем еще раз...")
+                print(f"Gemini вернул неожиданную категорию '{category}' для канала '{channel_name}'. Пробуем еще раз...")
                 time.sleep(5)  # Небольшая пауза перед повтором
                 continue
                 
@@ -76,17 +83,17 @@ Category:"""
             if "429" in str(e):
                 # Экспоненциальный backoff для rate limits
                 wait_time = min(60 * (1.5 ** (attempt - 1)), 300)  # Максимум 5 минут
-                print(f"⏳ Rate limit error для канала '{channel_name}'. Ждем {wait_time:.1f} секунд... (попытка {attempt})")
+                print(f"Rate limit error для канала '{channel_name}'. Ждем {wait_time:.1f} секунд... (попытка {attempt})")
                 time.sleep(wait_time)
                 continue
             elif "quota" in str(e).lower():
                 # Достигнут дневной лимит - ждем дольше
-                print(f"💤 Достигнут дневной лимит API. Ждем 10 минут перед продолжением... (попытка {attempt})")
+                print(f"Достигнут дневной лимит API. Ждем 10 минут перед продолжением... (попытка {attempt})")
                 time.sleep(600)  # 10 минут
                 continue
             else:
                 # Другие ошибки - короткая пауза и повтор
-                print(f"⚠️  Ошибка для канала '{channel_name}': {e}. Пробуем еще раз через 10 секунд... (попытка {attempt})")
+                print(f"Ошибка для канала '{channel_name}': {e}. Пробуем еще раз через 10 секунд... (попытка {attempt})")
                 time.sleep(10)
                 continue
 
@@ -96,17 +103,17 @@ def main():
     # Настройка Gemini
     try:
         model = setup_gemini()
-        print("✅ Gemini API настроен успешно")
+        print("Gemini API настроен успешно")
     except Exception as e:
-        print(f"❌ Ошибка настройки Gemini API: {e}")
+        print(f"Ошибка настройки Gemini API: {e}")
         return
     
     # Читаем данные
     try:
         df = pd.read_csv('youtube_history_with_language.csv')
-        print(f"✅ Загружен файл с {len(df)} видео")
+        print(f"Загружен файл с {len(df)} видео")
     except FileNotFoundError:
-        print("❌ Файл 'youtube_history_with_language.csv' не найден")
+        print("Файл 'youtube_history_with_language.csv' не найден")
         return
     
     # Группируем по каналам
@@ -116,18 +123,20 @@ def main():
         title = row['Название видео']
         channels_data[channel].append(title)
     
-    print(f"🔍 Найдено {len(channels_data)} уникальных каналов")
+    print(f"Найдено {len(channels_data)} уникальных каналов")
     
     # Категоризуем каждый канал
     channel_categories = {}
     
     for i, (channel, titles) in enumerate(channels_data.items(), 1):
-        print(f"📝 [{i}/{len(channels_data)}] Категоризуем канал: {channel}")
+        # Безопасно выводим название канала, заменяя проблемные символы
+        safe_channel_name = channel.encode('cp1251', 'replace').decode('cp1251')
+        print(f"[{i}/{len(channels_data)}] Категоризуем канал: {safe_channel_name}")
         
         category = categorize_channel(model, channel, titles)
         channel_categories[channel] = category
         
-        print(f"   ➡️  Категория: {category}")
+        print(f"   Категория: {category}")
         
         # Соблюдаем лимит 15 RPM для Free Tier (4+ секунды между запросами)
         time.sleep(4.5)
@@ -139,22 +148,23 @@ def main():
     output_file = 'youtube_history_with_categories.csv'
     df.to_csv(output_file, index=False, encoding='utf-8-sig')
     
-    print(f"\n✅ Файл с категориями сохранен: {output_file}")
+    print(f"\nФайл с категориями сохранен: {output_file}")
     
     # Показываем статистику по категориям
-    print("\n📊 Статистика по категориям:")
+    print("\nСтатистика по категориям:")
     category_stats = df['Category'].value_counts()
     for category, count in category_stats.items():
         print(f"   {category}: {count} видео")
     
     # Показываем каналы по категориям
-    print("\n🏷️  Каналы по категориям:")
+    print("\nКаналы по категориям:")
     for category in sorted(category_stats.index):
         channels_in_category = df[df['Category'] == category]['Название канала'].unique()
         print(f"\n{category}:")
         for channel in sorted(channels_in_category):
             video_count = len(df[df['Название канала'] == channel])
-            print(f"   • {channel} ({video_count} видео)")
+            safe_channel = channel.encode('cp1251', 'replace').decode('cp1251')
+            print(f"   - {safe_channel} ({video_count} видео)")
 
 if __name__ == "__main__":
     main() 

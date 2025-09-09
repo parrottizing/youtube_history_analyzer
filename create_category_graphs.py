@@ -4,7 +4,14 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 from collections import defaultdict
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 # Настройка для поддержки русского языка
 plt.rcParams['font.family'] = ['DejaVu Sans', 'Arial Unicode MS', 'sans-serif']
@@ -39,9 +46,9 @@ def main():
     # Читаем данные
     try:
         df = pd.read_csv('youtube_history_with_categories.csv')
-        print(f"✅ Загружен файл с {len(df)} видео")
+        print(f"Загружен файл с {len(df)} видео")
     except FileNotFoundError:
-        print("❌ Файл 'youtube_history_with_categories.csv' не найден")
+        print("Файл 'youtube_history_with_categories.csv' не найден")
         return
     
     # Добавляем колонку с длительностью в секундах
@@ -65,8 +72,8 @@ def main():
     russian_counts = [filtered_data.loc[cat, 'Russian'] if 'Russian' in filtered_data.columns else 0 for cat in top_categories]
     english_counts = [filtered_data.loc[cat, 'English'] if 'English' in filtered_data.columns else 0 for cat in top_categories]
     
-    bars1 = plt.bar(x, russian_counts, width, label='🇷🇺 Русский', color=colors['Russian'], alpha=0.8)
-    bars2 = plt.bar(x, english_counts, width, bottom=russian_counts, label='🇺🇸 English', color=colors['English'], alpha=0.8)
+    bars1 = plt.bar(x, russian_counts, width, label='Русский', color=colors['Russian'], alpha=0.8)
+    bars2 = plt.bar(x, english_counts, width, bottom=russian_counts, label='English', color=colors['English'], alpha=0.8)
     
     # Добавляем значения на столбцы
     for i, (rus, eng) in enumerate(zip(russian_counts, english_counts)):
@@ -77,7 +84,7 @@ def main():
             plt.text(i, rus + eng/2, str(eng), ha='center', va='center', fontweight='bold', color='white')
         plt.text(i, total + 0.3, str(total), ha='center', va='bottom', fontweight='bold', fontsize=11)
     
-    plt.title('🏆 Топ категории по количеству видео', fontsize=16, fontweight='bold', pad=20)
+    plt.title('Топ категории по количеству видео', fontsize=16, fontweight='bold', pad=20)
     plt.xlabel('Категории', fontsize=12, fontweight='bold')
     plt.ylabel('Количество видео', fontsize=12, fontweight='bold')
     plt.xticks(x, top_categories, rotation=45, ha='right')
@@ -85,7 +92,7 @@ def main():
     plt.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     plt.savefig('categories_by_video_count.png', dpi=300, bbox_inches='tight')
-    print("✅ График 'categories_by_video_count.png' создан")
+    print("График 'categories_by_video_count.png' создан")
     plt.close()
     
     # === График 2: Топ категории по времени просмотра ===
@@ -102,8 +109,8 @@ def main():
     russian_time = [filtered_time_data.loc[cat, 'Russian']/3600 if 'Russian' in filtered_time_data.columns else 0 for cat in top_time_categories]
     english_time = [filtered_time_data.loc[cat, 'English']/3600 if 'English' in filtered_time_data.columns else 0 for cat in top_time_categories]
     
-    bars1 = plt.bar(x, russian_time, width, label='🇷🇺 Русский', color=colors['Russian'], alpha=0.8)
-    bars2 = plt.bar(x, english_time, width, bottom=russian_time, label='🇺🇸 English', color=colors['English'], alpha=0.8)
+    bars1 = plt.bar(x, russian_time, width, label='Русский', color=colors['Russian'], alpha=0.8)
+    bars2 = plt.bar(x, english_time, width, bottom=russian_time, label='English', color=colors['English'], alpha=0.8)
     
     # Добавляем значения на столбцы
     for i, (rus, eng) in enumerate(zip(russian_time, english_time)):
@@ -122,7 +129,7 @@ def main():
         plt.text(i, rus + eng + 0.1, total_time_str, ha='center', va='bottom', 
                 fontweight='bold', fontsize=10)
     
-    plt.title('⏱️ Топ категории по времени просмотра', fontsize=16, fontweight='bold', pad=20)
+    plt.title('Топ категории по времени просмотра', fontsize=16, fontweight='bold', pad=20)
     plt.xlabel('Категории', fontsize=12, fontweight='bold')
     plt.ylabel('Время просмотра (часы)', fontsize=12, fontweight='bold')
     plt.xticks(x, top_time_categories, rotation=45, ha='right')
@@ -130,19 +137,19 @@ def main():
     plt.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     plt.savefig('categories_by_watch_time.png', dpi=300, bbox_inches='tight')
-    print("✅ График 'categories_by_watch_time.png' создан")
+    print("График 'categories_by_watch_time.png' создан")
     plt.close()
     
     # === Статистика ===
-    print("\n📊 Статистика по категориям:")
-    print("\n🎬 По количеству видео:")
+    print("\nСтатистика по категориям:")
+    print("\nПо количеству видео:")
     for category in top_categories:
         total = category_totals[category]
         rus_count = filtered_data.loc[category, 'Russian'] if 'Russian' in filtered_data.columns else 0
         eng_count = filtered_data.loc[category, 'English'] if 'English' in filtered_data.columns else 0
-        print(f"   {category}: {total} видео (🇷🇺 {rus_count} | 🇺🇸 {eng_count})")
+        print(f"   {category}: {total} видео ({rus_count} рус | {eng_count} англ)")
     
-    print("\n⏱️ По времени просмотра:")
+    print("\nПо времени просмотра:")
     for category in top_time_categories:
         total_time = category_time_totals[category]
         rus_time = filtered_time_data.loc[category, 'Russian'] if 'Russian' in filtered_time_data.columns else 0
@@ -152,9 +159,9 @@ def main():
         rus_str = format_time_display(rus_time)
         eng_str = format_time_display(eng_time)
         
-        print(f"   {category}: {total_str} (🇷🇺 {rus_str} | 🇺🇸 {eng_str})")
+        print(f"   {category}: {total_str} ({rus_str} рус | {eng_str} англ)")
     
-    print(f"\n🎯 Графики категорий успешно созданы!")
+    print(f"\nГрафики категорий успешно созданы!")
 
 if __name__ == "__main__":
     main() 

@@ -1,5 +1,12 @@
 import csv
+import sys
 import re
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 def detect_language(text):
     """
@@ -120,7 +127,7 @@ def test_language_detection():
         "Главная Загадка Второй Мировой.",
         "I/O '25 in under 10 minutes",
         "Почему принимать витамины бесполезно и опасно?",
-        "Franz Hermann is back 🤣",
+        "Franz Hermann is back (laughing)",
         "Имола 2025 Обзор гонки"
     ]
     

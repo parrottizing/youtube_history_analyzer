@@ -1,5 +1,12 @@
 import csv
+import sys
 import re
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 def is_timestamp(text):
     """
@@ -36,7 +43,7 @@ def parse_youtube_history(input_file='history.txt', output_file='youtube_history
     
     # Проходим по всем строкам, используя индекс, чтобы смотреть на соседние строки
     for i, line in enumerate(lines):
-        if "Now playing" in line:
+        if "Now playing" in line or "Текущее видео" in line:
             # Убедимся, что мы не выходим за пределы списка
             if i == 0:
                 continue

@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
+import sys
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 def main():
     df = pd.read_csv('youtube_history_with_categories.csv')

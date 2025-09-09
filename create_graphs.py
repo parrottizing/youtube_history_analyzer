@@ -1,8 +1,15 @@
 import csv
 import matplotlib.pyplot as plt
 import pandas as pd
+import sys
 from collections import defaultdict
 import re
+
+# Fix Unicode encoding for Windows console
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except AttributeError:
+    pass
 
 # Set up matplotlib for better looking plots
 plt.style.use('default')
@@ -53,7 +60,7 @@ def create_youtube_graphs():
                       top_channels['Количество видео'],
                       color=colors, alpha=0.8, edgecolor='black', linewidth=0.5)
         
-        plt.title('🏆 Топ 10 каналов по количеству просмотренных видео', 
+        plt.title('Топ 10 каналов по количеству просмотренных видео', 
                  fontsize=16, fontweight='bold', pad=20)
         plt.xlabel('Каналы', fontsize=12, fontweight='bold')
         plt.ylabel('Количество видео', fontsize=12, fontweight='bold')
@@ -72,14 +79,14 @@ def create_youtube_graphs():
         
         # Легенда
         from matplotlib.patches import Patch
-        legend_elements = [Patch(facecolor='#FF6B6B', label='🇷🇺 Русские каналы'),
-                          Patch(facecolor='#4ECDC4', label='🇺🇸 Английские каналы')]
+        legend_elements = [Patch(facecolor='#FF6B6B', label='Русские каналы'),
+                          Patch(facecolor='#4ECDC4', label='Английские каналы')]
         plt.legend(handles=legend_elements, loc='upper right')
         
         plt.grid(axis='y', alpha=0.3)
         plt.tight_layout()
         plt.savefig('top_channels_by_count.png', dpi=300, bbox_inches='tight')
-        print("✅ График 'top_channels_by_count.png' создан")
+        print("График 'top_channels_by_count.png' создан")
         plt.close()
         
         # График 2: Топ каналов по времени просмотра
@@ -123,7 +130,7 @@ def create_youtube_graphs():
         plt.grid(axis='y', alpha=0.3)
         plt.tight_layout()
         plt.savefig('top_channels_by_time.png', dpi=300, bbox_inches='tight')
-        print("✅ График 'top_channels_by_time.png' создан")
+        print("График 'top_channels_by_time.png' создан")
         plt.close()
         
         # График 3: Распределение по языкам
@@ -137,7 +144,7 @@ def create_youtube_graphs():
         
         values = [russian_count, english_count]
         colors_pie = ['#FF6B6B', '#4ECDC4']
-        labels = ['🇷🇺 Русский', '🇺🇸 English']
+        labels = ['Русский', 'English']
         
         wedges, texts, autotexts = plt.pie(values, 
                                           labels=labels,
@@ -157,19 +164,19 @@ def create_youtube_graphs():
             text.set_fontsize(12)
             text.set_fontweight('bold')
         
-        plt.title('🌐 Распределение видео по языкам', 
+        plt.title('Распределение видео по языкам', 
                  fontsize=16, fontweight='bold', pad=20)
         
         # Статистика
         total_videos = len(video_df)
         
-        stats_text = f"Всего видео: {total_videos}\n🇷🇺 Русский: {russian_count}\n🇺🇸 English: {english_count}"
+        stats_text = f"Всего видео: {total_videos}\nРусский: {russian_count}\nEnglish: {english_count}"
         plt.text(1.3, 0.5, stats_text, fontsize=11, 
                 bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgray', alpha=0.8))
         
         plt.tight_layout()
         plt.savefig('language_distribution.png', dpi=300, bbox_inches='tight')
-        print("✅ График 'language_distribution.png' создан")
+        print("График 'language_distribution.png' создан")
         plt.close()
         
         # График 4: Распределение времени просмотра по языкам
@@ -208,7 +215,7 @@ def create_youtube_graphs():
         
         # Создаем данные для pie chart
         time_values = [total_time_by_language['Russian'], total_time_by_language['English']]
-        time_labels = ['🇷🇺 Русский', '🇺🇸 English']
+        time_labels = ['Русский', 'English']
         time_colors = ['#FF6B6B', '#4ECDC4']
         
         # Вычисляем проценты
@@ -250,19 +257,19 @@ def create_youtube_graphs():
         total_time_str = format_time_display(sum(time_values))
         
         # Добавляем статистику времени
-        time_stats_text = f"Общее время: {total_time_str}\n🇷🇺 Русский: {russian_time_str}\n🇺🇸 English: {english_time_str}"
+        time_stats_text = f"Общее время: {total_time_str}\nРусский: {russian_time_str}\nEnglish: {english_time_str}"
         plt.text(1.3, 0.5, time_stats_text, fontsize=11, 
                 bbox=dict(boxstyle="round,pad=0.3", facecolor='lightblue', alpha=0.8))
         
         plt.tight_layout()
         plt.savefig('watch_time_by_language.png', dpi=300, bbox_inches='tight')
-        print("✅ График 'watch_time_by_language.png' создан")
+        print("График 'watch_time_by_language.png' создан")
         plt.close()
         
-        print(f"\n🎯 Все графики успешно созданы!")
+        print(f"\nВсе графики успешно созданы!")
         
     except Exception as e:
-        print(f"❌ ОШИБКА: {e}")
+        print(f"ОШИБКА: {e}")
         print("Убедитесь, что установлены pandas и matplotlib:")
         print("pip install pandas matplotlib")
 

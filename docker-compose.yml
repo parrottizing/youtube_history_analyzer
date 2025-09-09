@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  youtube-analyzer:
+    build: .
+    container_name: youtube-history-analyzer
+    volumes:
+      # Mount input file
+      - ./history.txt:/app/history.txt:ro
+      # Mount environment file
+      - ./.env:/app/.env:ro
+      # Mount output directory for results
+      - ./output:/app/output
+    environment:
+      # Ensure proper encoding for output
+      - PYTHONIOENCODING=utf-8
+      - LANG=C.UTF-8
+    restart: "no"
+    # Override default command if needed
+    # command: python run_pipeline.py
