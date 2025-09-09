@@ -12,6 +12,17 @@ A comprehensive Python toolkit for parsing, analyzing, and visualizing YouTube v
 - **Channel Analysis**: Groups videos by channel with detailed statistics
 - **Robust Processing**: Handles rate limits and errors gracefully
 
+## 🔄 Project Workflow
+
+```mermaid
+flowchart LR
+    A[Step 1: Parse TXT to CSV] --> B[Step 2: Remove Duplicates]
+    B --> C[Step 3: Detect Language]
+    C --> D[Step 4: Analyze by Channels]
+    D --> E[Step 5: Analyze Channel Categories]
+    E --> F[Step 6: Create Graphs]
+```
+
 ## 📊 Generated Visualizations
 
 ### Channel Analysis
