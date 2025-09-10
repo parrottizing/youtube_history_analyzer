@@ -17,6 +17,11 @@ try:
 except AttributeError:
     pass
 
+# Helper function to print with immediate flush
+def print_flush(*args, **kwargs):
+    print(*args, **kwargs)
+    sys.stdout.flush()
+
 class ChannelCategoryCache:
     """Manages cached channel-to-category mappings"""
     
@@ -32,7 +37,7 @@ class ChannelCategoryCache:
             if os.path.exists(self.cache_file):
                 with open(self.cache_file, 'r', encoding='utf-8') as f:
                     self.cache = json.load(f)
-                print(f"📚 Loaded {len(self.cache)} channel categories from cache")
+                print_flush(f"📚 Loaded {len(self.cache)} channel categories from cache")
             else:
                 print(f"📚 No cache file found, starting fresh")
         except Exception as e:
@@ -135,7 +140,7 @@ Category:"""
                     print(f"✅ Успешно получили категорию после {attempt} попыток")
                 return category
             else:
-                print(f"⚠️ Gemini вернул неожиданную категорию '{category}' для канала '{channel_name}'. Пробуем еще раз...")
+                print_flush(f"⚠️ Gemini вернул неожиданную категорию '{category}' для канала '{channel_name}'. Пробуем еще раз...")
                 time.sleep(5)  # Небольшая пауза перед повтором
                 continue
                 
@@ -143,17 +148,17 @@ Category:"""
             if "429" in str(e):
                 # Экспоненциальный backoff для rate limits
                 wait_time = min(60 * (1.5 ** (attempt - 1)), 300)  # Максимум 5 минут
-                print(f"⏳ Rate limit error для канала '{channel_name}'. Ждем {wait_time:.1f} секунд... (попытка {attempt})")
+                print_flush(f"⏳ Rate limit error для канала '{channel_name}'. Ждем {wait_time:.1f} секунд... (попытка {attempt})")
                 time.sleep(wait_time)
                 continue
             elif "quota" in str(e).lower():
                 # Достигнут дневной лимит - ждем дольше
-                print(f"⏳ Достигнут дневной лимит API. Ждем 10 минут перед продолжением... (попытка {attempt})")
+                print_flush(f"⏳ Достигнут дневной лимит API. Ждем 10 минут перед продолжением... (попытка {attempt})")
                 time.sleep(600)  # 10 минут
                 continue
             else:
                 # Другие ошибки - короткая пауза и повтор
-                print(f"❌ Ошибка для канала '{channel_name}': {e}. Пробуем еще раз через 10 секунд... (попытка {attempt})")
+                print_flush(f"❌ Ошибка для канала '{channel_name}': {e}. Пробуем еще раз через 10 секунд... (попытка {attempt})")
                 time.sleep(10)
                 continue
 
@@ -193,20 +198,23 @@ def main():
         else:
             unknown_channels.append(channel)
     
-    print(f"✅ В кэше уже есть {cached_channels} каналов")
-    print(f"🤖 Нужно категоризовать {len(unknown_channels)} новых каналов с помощью AI")
+    print_flush(f"✅ В кэше уже есть {cached_channels} каналов")
+    print_flush(f"🤖 Нужно категоризовать {len(unknown_channels)} новых каналов с помощью AI")
     
     # Настраиваем Gemini только если есть новые каналы
     if unknown_channels:
         try:
             model = setup_gemini()
-            print("🤖 Gemini API настроен успешно")
+            print_flush("🤖 Gemini API настроен успешно")
         except Exception as e:
             print(f"❌ Ошибка настройки Gemini API: {e}")
             return
     
     # Категоризуем каналы
     channel_categories = {}
+    
+    print_flush(f"\n🚀 Начинаем обработку {len(channels_data)} каналов...")
+    start_time = time.time()
     
     for i, (channel, titles) in enumerate(channels_data.items(), 1):
         safe_channel_name = channel.encode('cp1251', 'replace').decode('cp1251')
@@ -215,10 +223,21 @@ def main():
         cached_category = cache.get_category(channel)
         if cached_category:
             channel_categories[channel] = cached_category
-            print(f"[{i}/{len(channels_data)}] 💾 {safe_channel_name} → {cached_category} (из кэша)")
+            print_flush(f"[{i}/{len(channels_data)}] 💾 {safe_channel_name} → {cached_category} (из кэша)")
         else:
             # Используем AI для новых каналов
-            print(f"[{i}/{len(channels_data)}] 🤖 Категоризуем новый канал: {safe_channel_name}")
+            progress_percent = (i / len(channels_data)) * 100
+            elapsed_time = time.time() - start_time
+            if i > 1:
+                avg_time_per_channel = elapsed_time / (i - 1)
+                remaining_channels = len(channels_data) - i
+                estimated_remaining = avg_time_per_channel * remaining_channels
+                est_minutes = int(estimated_remaining // 60)
+                est_seconds = int(estimated_remaining % 60)
+                print_flush(f"[{i}/{len(channels_data)}] ({progress_percent:.1f}%) 🤖 Категоризуем новый канал: {safe_channel_name}")
+                print_flush(f"   ⏰ Примерно осталось: {est_minutes}м {est_seconds}с")
+            else:
+                print_flush(f"[{i}/{len(channels_data)}] ({progress_percent:.1f}%) 🤖 Категоризуем новый канал: {safe_channel_name}")
             
             if not model:
                 print("❌ Gemini API не настроен для новых каналов")
@@ -228,7 +247,7 @@ def main():
             channel_categories[channel] = category
             cache.add_category(channel, category)
             
-            print(f"   ✅ Категория: {category}")
+            print_flush(f"   ✅ Категория: {category}")
             
             # Соблюдаем лимит 15 RPM для Free Tier (4+ секунды между запросами)
             time.sleep(4.5)
@@ -241,14 +260,21 @@ def main():
     
     # Сохраняем результат
     timestamp = datetime.now().strftime('%H-%M-%S-%f')[:-3]
-    output_file = f'output/youtube_history_with_categories.csv {timestamp}.csv'
+    timestamped_file = f'output/youtube_history_with_categories.csv {timestamp}.csv'
+    main_file = 'youtube_history_with_categories.csv'
     
     # Создаем папку output если не существует
     os.makedirs('output', exist_ok=True)
     
-    df.to_csv(output_file, index=False, encoding='utf-8-sig')
+    # Сохраняем с timestamp в папке output
+    df.to_csv(timestamped_file, index=False, encoding='utf-8-sig')
     
-    print(f"\n📊 Файл с категориями сохранен: {output_file}")
+    # Также сохраняем основную версию для следующих шагов pipeline
+    df.to_csv(main_file, index=False, encoding='utf-8-sig')
+    
+    print_flush(f"\n📊 Файлы с категориями сохранены:")
+    print_flush(f"   📁 {timestamped_file} (архивная версия)")
+    print_flush(f"   📁 {main_file} (для следующих шагов)")
     
     # Показываем статистику по категориям
     print("\n📈 Статистика по категориям:")
@@ -264,7 +290,12 @@ def main():
         cache_hit_rate = (cached_channels / len(channels_data)) * 100
         print(f"   Процент попаданий в кэш: {cache_hit_rate:.1f}%")
     
-    print(f"\n🎉 Готово! Всего обработано {len(channels_data)} каналов")
+    # Подсчитываем общее время обработки
+    total_elapsed = time.time() - start_time
+    minutes = int(total_elapsed // 60)
+    seconds = int(total_elapsed % 60)
+    
+    print_flush(f"\n🎉 Готово! Всего обработано {len(channels_data)} каналов за {minutes}м {seconds}с")
 
 if __name__ == "__main__":
     main()

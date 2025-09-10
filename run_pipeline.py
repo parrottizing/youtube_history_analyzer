@@ -36,25 +36,43 @@ def run_script(script_name, description):
     start_time = time.time()
     
     try:
-        result = subprocess.run([sys.executable, script_name], 
-                              capture_output=True, 
-                              text=True, 
-                              check=True)
+        # Use subprocess.Popen for real-time output
+        process = subprocess.Popen([sys.executable, script_name], 
+                                 stdout=subprocess.PIPE, 
+                                 stderr=subprocess.PIPE,
+                                 text=True,
+                                 bufsize=1,
+                                 universal_newlines=True)
+        
+        # Read output in real-time
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                print(output.strip())
+                sys.stdout.flush()  # Ensure immediate output
+        
+        # Get return code
+        return_code = process.poll()
         
         elapsed = time.time() - start_time
-        print(f"{script_name} completed successfully in {elapsed:.1f}s")
         
-        if result.stdout:
-            print(f"Output: {result.stdout.strip()}")
+        if return_code == 0:
+            print(f"\n✅ {script_name} completed successfully in {elapsed:.1f}s")
+            return True
+        else:
+            # Read any remaining stderr
+            stderr_output = process.stderr.read()
+            print(f"\n❌ {script_name} failed after {elapsed:.1f}s")
+            if stderr_output:
+                print(f"Error: {stderr_output.strip()}")
+            return False
             
-        return True
-        
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         elapsed = time.time() - start_time
-        print(f"{script_name} failed after {elapsed:.1f}s")
-        print(f"Error: {e.stderr}")
-        if e.stdout:
-            print(f"Output: {e.stdout}")
+        print(f"\n❌ {script_name} failed after {elapsed:.1f}s")
+        print(f"Error: {e}")
         return False
 
 def check_prerequisites():
