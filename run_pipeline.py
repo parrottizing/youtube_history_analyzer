@@ -19,6 +19,7 @@ import sys
 import os
 import time
 from pathlib import Path
+import shutil
 
 # Fix Unicode encoding for Windows console
 try:
@@ -152,6 +153,47 @@ def main():
         print("   * videos_by_channel.csv (detailed video listings)")
         print("   * 6 visualization graphs (PNG files)")
         print("\nYour YouTube history analysis is ready!")
+
+        # Cleanup: keep ONLY the final categorized CSV in output/, remove other CSVs
+        try:
+            output_dir = Path('output')
+            output_dir.mkdir(exist_ok=True)
+
+            final_csv_name = 'youtube_history_with_categories.csv'
+            final_csv_src = Path(final_csv_name)
+            final_csv_dst = output_dir / final_csv_name
+
+            # Ensure the final table is present in output/
+            if final_csv_src.exists():
+                shutil.copy2(final_csv_src, final_csv_dst)
+                print(f"\n🧾 Copied final table to: {final_csv_dst}")
+            else:
+                # Fallback: try latest timestamped categories CSV from output/
+                timestamped_candidates = [
+                    p for p in output_dir.iterdir()
+                    if p.is_file() and p.suffix.lower() == '.csv' and p.name.startswith('youtube_history_with_categories.csv ')
+                ]
+                if timestamped_candidates:
+                    latest = max(timestamped_candidates, key=lambda p: p.stat().st_mtime)
+                    shutil.copy2(latest, final_csv_dst)
+                    print(f"\n🧾 Copied latest categories table to: {final_csv_dst}")
+                else:
+                    print(f"\n⚠️ Final CSV not found; skipping copy to output/")
+
+            # Delete all other CSVs in output/ except the final kept one
+            deleted_count = 0
+            for item in output_dir.iterdir():
+                if item.is_file() and item.suffix.lower() == '.csv' and item.name != final_csv_name:
+                    try:
+                        item.unlink()
+                        deleted_count += 1
+                    except Exception as e:
+                        print(f"⚠️ Could not delete '{item}': {e}")
+
+            print(f"🧹 Cleanup complete in 'output/': kept '{final_csv_name}', deleted {deleted_count} other CSV(s)")
+
+        except Exception as e:
+            print(f"\n⚠️ Cleanup step failed: {e}")
 
 if __name__ == "__main__":
     main()
