@@ -9,6 +9,8 @@ services:
       - ./history.txt:/app/history.txt:ro
       # Mount environment file
       - ./.env:/app/.env:ro
+      # Persist channel category cache between runs
+      - ./channel_categories.json:/app/channel_categories.json
       # Mount output directory for results
       - ./output:/app/output
     environment:

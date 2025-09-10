@@ -7,7 +7,7 @@ A comprehensive Python toolkit for parsing, analyzing, and visualizing YouTube v
 - **Smart Parsing**: Handles complex YouTube history formats with "Mark as watched" entries
 - **Duplicate Detection**: Identifies and removes duplicate video entries
 - **Language Detection**: Automatically detects Russian (Cyrillic) vs English (Latin) content
-- **AI Categorization**: Uses Google Gemini 2.0 Flash to intelligently categorize channels into topics
+- **AI Categorization**: Uses Groq `moonshotai/kimi-k2-instruct` to intelligently categorize channels into topics
 - **Rich Visualizations**: Generates 6 comprehensive graphs analyzing viewing patterns
 - **Channel Analysis**: Groups videos by channel with detailed statistics
 - **Robust Processing**: Handles rate limits and errors gracefully
@@ -82,7 +82,7 @@ python analyze_by_channels.py
 - `videos_by_channel.csv`: Detailed video listings grouped by channel
 
 #### 5. `add_categories.py`
-**Purpose**: AI-powered categorization of channels using Google Gemini **with intelligent caching**
+**Purpose**: AI-powered categorization of channels using Groq Kimi K2 **with intelligent caching**
 ```bash
 python add_categories.py
 ```
@@ -98,8 +98,8 @@ python add_categories.py
 - **Auto-backup**: Creates timestamped backups before cache updates
 
 **AI Features**:
-- Uses Gemini 2.0 Flash with temperature 0 for consistent categorization
-- Respects API rate limits (15 RPM for free tier)
+- Uses Groq `moonshotai/kimi-k2-instruct` with temperature 0 for consistent categorization
+- Respects API rate limits
 - Infinite retry logic - never gives up on categorization
 - Exponential backoff for rate limit handling
 - Only initializes AI when unknown channels are found
@@ -138,7 +138,7 @@ python check_categories.py
 ```txt
 pandas>=2.0.0
 matplotlib>=3.5.0
-google-generativeai>=0.3.0
+groq
 python-dotenv>=1.0.0
 numpy>=1.21.0
 ```
@@ -147,15 +147,15 @@ Install dependencies:
 ```bash
 pip install -r requirements.txt
 # or manually:
-pip install pandas matplotlib google-generativeai python-dotenv
+pip install pandas matplotlib groq python-dotenv
 ```
 
 ## ⚙️ Setup
 
 ### 1. Environment Configuration
-Create a `.env` file with your Gemini API key:
+Create a `.env` file with your Groq API key:
 ```env
-GEMINI_API_KEY=your_api_key_here
+GROQ_API_KEY=your_api_key_here
 ```
 
 ### 2. Input Data
@@ -289,8 +289,7 @@ YouTube_history_analyzer/
 - Automatic categorization without external APIs
 - High accuracy for bilingual viewing patterns
 
-### AI Categorization
-- Uses Google Gemini 2.0 Flash for intelligent categorization
+- Uses Groq `moonshotai/kimi-k2-instruct` for intelligent categorization
 - Analyzes both channel names and video titles
 - Temperature 0 for consistent results
 - Never gives up - infinite retry with exponential backoff
@@ -321,13 +320,13 @@ YouTube_history_analyzer/
 
 - All data files are git-ignored for privacy
 - API keys stored in environment variables
-- No data is transmitted except to Gemini API for categorization
+- No data is transmitted except to Groq API for categorization
 - Local processing ensures data privacy
 
 ## 🚧 Error Handling
 
 ### Rate Limiting
-- Respects Gemini API free tier limits (15 RPM)
+- Respects Groq API limits
 - Automatic retry with exponential backoff
 - Handles daily quota limits gracefully
 

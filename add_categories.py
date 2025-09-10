@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pandas as pd
-import google.generativeai as genai
+from groq import Groq
 from dotenv import load_dotenv
 import os
 import sys
@@ -80,33 +80,19 @@ class ChannelCategoryCache:
         except Exception as e:
             print(f"❌ Error saving cache: {e}")
 
-def setup_gemini():
-    """Настройка Gemini API"""
+def setup_groq_client():
+    """Настройка Groq API клиента для moonshotai/kimi-k2-instruct"""
     load_dotenv()
-    api_key = os.getenv('GEMINI_API_KEY')
+    api_key = os.getenv('GROQ_API_KEY')
     
     if not api_key:
-        raise ValueError("GEMINI_API_KEY не найден в .env файле")
+        raise ValueError("GROQ_API_KEY не найден в .env файле")
     
-    genai.configure(api_key=api_key)
-    
-    # Настройка модели
-    generation_config = {
-        "temperature": 0,
-        "top_p": 0.95,
-        "top_k": 64,
-        "max_output_tokens": 10,
-    }
-    
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        generation_config=generation_config,
-    )
-    
-    return model
+    client = Groq(api_key=api_key)
+    return client
 
-def categorize_channel(model, channel_name, video_titles):
-    """Категоризация канала с помощью Gemini AI - НИКОГДА не сдаемся!"""
+def categorize_channel(client, channel_name, video_titles):
+    """Категоризация канала с помощью Groq Kimi K2 - НИКОГДА не сдаемся!"""
     
     # Создаем промпт
     titles_text = "\n".join([f"- {title}" for title in video_titles])
@@ -129,8 +115,14 @@ Category:"""
     while True:  # НИКОГДА НЕ СДАЕМСЯ!
         attempt += 1
         try:
-            response = model.generate_content(prompt)
-            category = response.text.strip().upper()
+            completion = client.chat.completions.create(
+                model="moonshotai/kimi-k2-instruct",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0,
+                max_tokens=10,
+                top_p=0.95,
+            )
+            category = (completion.choices[0].message.content or "").strip().upper()
             
             # Проверяем, что ответ в списке допустимых категорий
             valid_categories = ['AI AND CODING', 'F1', 'FOOTBALL', 'BASKETBALL', 'NEWS', 'HUMOR', 'POPULAR SCIENCE', 'HISTORY', 'SUPERHEROES', 'OTHER']
@@ -140,7 +132,7 @@ Category:"""
                     print(f"✅ Успешно получили категорию после {attempt} попыток")
                 return category
             else:
-                print_flush(f"⚠️ Gemini вернул неожиданную категорию '{category}' для канала '{channel_name}'. Пробуем еще раз...")
+                print_flush(f"⚠️ Модель вернула неожиданную категорию '{category}' для канала '{channel_name}'. Пробуем еще раз...")
                 time.sleep(5)  # Небольшая пауза перед повтором
                 continue
                 
@@ -163,13 +155,13 @@ Category:"""
                 continue
 
 def main():
-    print("=== Добавление категорий к видео с помощью Gemini AI ===\n")
+    print("=== Добавление категорий к видео с помощью Groq Kimi K2 ===\n")
     
     # Инициализируем кэш
     cache = ChannelCategoryCache()
     
-    # Настройка Gemini (только если нужно будет делать AI запросы)
-    model = None
+    # Настройка Groq (только если нужно будет делать AI запросы)
+    client = None
     
     # Читаем данные
     try:
@@ -201,13 +193,13 @@ def main():
     print_flush(f"✅ В кэше уже есть {cached_channels} каналов")
     print_flush(f"🤖 Нужно категоризовать {len(unknown_channels)} новых каналов с помощью AI")
     
-    # Настраиваем Gemini только если есть новые каналы
+    # Настраиваем Groq только если есть новые каналы
     if unknown_channels:
         try:
-            model = setup_gemini()
-            print_flush("🤖 Gemini API настроен успешно")
+            client = setup_groq_client()
+            print_flush("🤖 Groq Kimi K2 API настроен успешно")
         except Exception as e:
-            print(f"❌ Ошибка настройки Gemini API: {e}")
+            print(f"❌ Ошибка настройки Groq API: {e}")
             return
     
     # Категоризуем каналы
@@ -239,17 +231,17 @@ def main():
             else:
                 print_flush(f"[{i}/{len(channels_data)}] ({progress_percent:.1f}%) 🤖 Категоризуем новый канал: {safe_channel_name}")
             
-            if not model:
-                print("❌ Gemini API не настроен для новых каналов")
+            if not client:
+                print("❌ Groq API не настроен для новых каналов")
                 return
                 
-            category = categorize_channel(model, channel, titles)
+            category = categorize_channel(client, channel, titles)
             channel_categories[channel] = category
             cache.add_category(channel, category)
             
             print_flush(f"   ✅ Категория: {category}")
             
-            # Соблюдаем лимит 15 RPM для Free Tier (4+ секунды между запросами)
+            # Соблюдаем лимиты API (пауза между запросами)
             time.sleep(4.5)
     
     # Сохраняем обновленный кэш

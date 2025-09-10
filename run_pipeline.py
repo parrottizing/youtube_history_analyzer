@@ -10,7 +10,7 @@ Usage:
 
 Requirements:
     - history.txt file in the project root
-    - .env file with GEMINI_API_KEY configured
+    - .env file with GROQ_API_KEY configured
     - All required dependencies installed
 """
 
@@ -88,7 +88,7 @@ def check_prerequisites():
     # Check for .env file
     if not os.path.exists(".env"):
         print("Missing required file: .env")
-        print("Please create .env file with GEMINI_API_KEY configured.")
+        print("Please create .env file with GROQ_API_KEY configured.")
         return False
     
     print("All prerequisites found")
