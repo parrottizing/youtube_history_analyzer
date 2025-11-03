@@ -40,55 +40,65 @@ def parse_youtube_history(input_file='history.txt', output_file='youtube_history
         return
 
     extracted_data = []
-    
-    # Проходим по всем строкам, используя индекс, чтобы смотреть на соседние строки
-    for i, line in enumerate(lines):
-        if "Now playing" in line or "Текущее видео" in line:
-            # Убедимся, что мы не выходим за пределы списка
-            if i == 0:
+    stripped_lines = [line.strip() for line in lines]
+    day_markers = {
+        "Today",
+        "Yesterday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+        "Сегодня",
+        "Вчера",
+        "Понедельник",
+        "Вторник",
+        "Среда",
+        "Четверг",
+        "Пятница",
+        "Суббота",
+        "Воскресенье",
+    }
+    skip_markers = {"•", "Mark as watched"}
+
+    def next_non_empty_index(start, extra_skip=None):
+        skip_values = day_markers | skip_markers
+        if extra_skip:
+            skip_values |= extra_skip
+        for idx in range(start, len(stripped_lines)):
+            value = stripped_lines[idx]
+            if not value:
                 continue
-
-            # Строка выше - потенциальная длительность
-            potential_duration = lines[i-1].strip()
-
-            # Проверяем, является ли строка выше временной меткой. Если нет - это SHORTS, пропускаем.
-            if not is_timestamp(potential_duration):
+            if value in skip_values:
                 continue
+            return idx
+        return None
 
-            # Если проверка пройдена, извлекаем данные
-            duration = potential_duration
-            
-            # Строка ниже - название видео (но сначала проверим на "Mark as watched")
-            title_line_index = i + 1
-            
-            # Проверяем, есть ли "Mark as watched" в следующей строке
-            if title_line_index < len(lines) and "Mark as watched" in lines[title_line_index]:
-                # Пропускаем "Mark as watched" и ищем следующую непустую строку с названием
-                title_line_index += 1
-                # Ищем первую непустую строку после "Mark as watched"
-                while title_line_index < len(lines) and not lines[title_line_index].strip():
-                    title_line_index += 1
-            
-            # Получаем название видео
-            if title_line_index < len(lines):
-                title = lines[title_line_index].strip()
-            else:
-                continue  # Если не нашли название, пропускаем эту запись
-            
-            # Ищем название канала в следующих строках
-            channel = ""
-            # Начинаем поиск со строки после названия видео
-            for j in range(title_line_index + 1, len(lines)):
-                channel_line = lines[j].strip()
-                # Первая же непустая строка - это то, что нам нужно
-                if channel_line:
-                    # Название канала - это все до символа '•'
-                    channel = channel_line.split('•')[0].strip()
-                    break # Нашли канал, выходим из внутреннего цикла
-            
-            # Добавляем найденные данные в наш список
-            if title and channel and duration:
-                extracted_data.append([title, channel, duration])
+    # Проходим по всем строкам и ищем длительности как маркеры начала записи
+    for i, value in enumerate(stripped_lines):
+        if not is_timestamp(value):
+            continue
+
+        duration = value
+
+        title_idx = next_non_empty_index(i + 1)
+        if title_idx is None:
+            continue
+        title = stripped_lines[title_idx]
+
+        channel_idx = next_non_empty_index(
+            title_idx + 1, extra_skip={"Mark as watched"}
+        )
+        if channel_idx is None:
+            continue
+        channel_line = stripped_lines[channel_idx]
+        # Канал иногда указывается вместе с символом •, поэтому обрезаем его
+        channel = channel_line.split("•")[0].strip()
+
+        if title and channel and duration:
+            extracted_data.append([title, channel, duration])
 
     if not extracted_data:
         print("Не найдено ни одной записи о видео. Проверьте формат данных в файле 'history.txt'.")
