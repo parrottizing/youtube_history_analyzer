@@ -26,4 +26,10 @@ __pycache__/
 
 # Ignore OS files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Ignore browser session data (local profile)
+chrome_data/
+
+# Ignore virtual environment
+venv/
