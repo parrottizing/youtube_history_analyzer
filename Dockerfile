@@ -1,29 +1,34 @@
-# Use Python 3.11 slim image for smaller size
-FROM python:3.11-slim
 
-# Set working directory
-WORKDIR /app
+FROM python:3.9-slim
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Install system dependencies for matplotlib
+# Install system dependencies (wget, gnupg for Chrome)
 RUN apt-get update && apt-get install -y \
-    gcc \
+    wget \
+    gnupg \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
+# Install Chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up work directory
+WORKDIR /app
+
+# Copy requirements if available
 COPY requirements.txt .
+# Install dependencies (including new ones)
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir youtube-transcript-api groq selenium webdriver-manager pandas matplotlib
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
+# Copy project files
 COPY . .
 
-# Create directory for output files
-RUN mkdir -p /app/output
+# Environment variables
+ENV PYTHONUNBUFFERED=1
 
-# Set default command to run the pipeline and copy only graphs and final CSV to output
-CMD ["sh", "-c", "python run_pipeline.py && mkdir -p /app/output && cp *.png /app/output/ 2>/dev/null || true && cp youtube_history_with_categories.csv /app/output/ 2>/dev/null || true"]
+# Command to run the pipeline
+CMD ["python", "main.py"]
