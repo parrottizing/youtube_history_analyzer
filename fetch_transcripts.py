@@ -37,6 +37,11 @@ class TranscriptFetcher:
         else:
              self.min_sleep = 5.0 if self.safe_mode else 2.0
 
+        if max_sleep is not None:
+             self.max_sleep = float(max_sleep)
+        else:
+             self.max_sleep = 10.0 if self.safe_mode else 5.0
+
         # Configure Session with Cookies if provided
         self.http_session = requests.Session()
         self.http_session.headers.update({
