@@ -3,42 +3,38 @@
 ## Objective
 Fetch transcripts for ~150 YouTube videos quickly, reliably, and without polluting the user's watch history.
 
-## Status Update (2026-02-02) - CRITICAL FINDINGS
-The initial "Hybrid Approach" encountered significant **Rate Limiting (HTTP 429)**.
+## Status Update (2026-02-02) - CRITICAL FINDINGS (Iterative)
+1.  **Translation Trigger**: Confirmed that API-based translation triggers immediate blocks.
+2.  **IP Reputation / Token Bucket**:
+    *   Even with "Safe Mode" (No translation, 6-9s delay), the script successfully fetched **~13 videos** before hitting a hard 429 (Too Many Requests) wall.
+    *   This indicates the IP address has a "allowance" or "reputation bucket" that fills up slowly. Once drained, even requests with cookies are blocked.
+    *   `yt-dlp` fallback also fails when the IP is in this state.
 
-### Diagnosis of Failure
-1.  **Translation Trigger**: Attempting to translate transcripts via the API (e.g., Russian -> English) appears to be a high-risk activity that triggers YouTube's bot detection almost immediately.
-2.  **IP Reputation**: Once the IP is flagged by the API, fallback requests via `yt-dlp` (even with cookies) also start failing with 429 errors.
-3.  **Aggressive Timing**: The previous delay (2-5 seconds) was too short for a flagged IP.
+## Revised Strategy: "Smart Burst Mode"
 
-## Revised Strategy: "Safe Mode"
+To balance "Speed" vs "Block Avoidance", we cannot use a fixed delay. We need a variable schedule that mimics human browsing sessions (watch a few, take a break).
 
-To bypass these blocks, we must pivot from "Maximum Speed" to "Maximum Stealth".
+### 1. Burst Processing
+*   **Logic**: Fetch a small batch (e.g., 5-10 videos) relatively quickly (3-5s delay).
+*   **Cooldown**: After the batch, force a **long sleep** (e.g., 60-120 seconds) to let the "token bucket" replenish.
+*   **Why**: This is faster than a constant 30s delay (which totals ~75 mins) but safer than a constant 5s delay (which gets blocked after 13 videos).
 
-### 1. Disable API Translation
-*   **Why**: The translation endpoint seems to have stricter rate limits.
-*   **New Logic**: Fetch the **original language** transcript only. Do not attempt to translate it during the download phase. We can translate it locally later using an LLM or other tool, which is safer.
+### 2. IP Hygiene
+*   **Immediate Action**: The current IP is likely "hot". Switching networks (e.g., toggling Airplane mode on mobile hotspot, or connecting to a VPN) is the fastest way to reset the counter.
+*   **Cookies**: Continue using `--cookies` to validate "legitimacy" of the requests, though this doesn't strictly prevent rate limits.
 
-### 2. Increase Delays Significantly
-*   **Standard Sleep**: Increase from ~3s to **20-40 seconds**.
-*   **Cooldown**: If a 429 is hit, sleep for **5 minutes** (not just 10s).
+### 3. Algorithm Update
+*   **Batch Size**: 5 videos.
+*   **Intra-Batch Sleep**: 3-6 seconds.
+*   **Inter-Batch Sleep**: 60 seconds.
+*   **Est. Total Time**: 
+    *   150 videos / 5 per batch = 30 batches.
+    *   30 batches * 60s cooldown = 30 mins.
+    *   Processing time = ~10 mins.
+    *   **Total**: ~40 minutes. (Much better than 1.5 hours).
 
-### 3. Processing Order
-*   Process the list slowly in the background. ~150 videos * 30s = ~75 minutes. This is slower but reliable.
-
-### 4. Alternative Backup: Anonymous Browser
-*   If the Python API remains blocked, the next step is **Selenium/Playwright in Incognito Mode**.
-    *   **Pros**: Emulates a real user (executes JS), bypasses API limits.
-    *   **Privacy**: Incognito mode ensures NO watch history pollution.
-    *   **Cons**: Requires browser overhead, slower.
-
-## Implementation Plan (Step-by-Step)
-1.    .venv/bin/python3 fetch_transcripts.py --csv data/04_enriched.csv --cookies cookies.txt --safe` flag.
-    *   Remove translation attempts (fetch only `en` or `original`).
-    *   Increase default sleep to 30s.
-    *   Implement "Cool Down" blocks (sleep 300s on 429).
-
-2.  **User Action**:
-    *   Stop current script.
-    *   Wait ~30 mins for IP block to expire.
-    *   Run with `--safe` flag.
+## Usage
+```bash
+# Run with Burst Mode (default settings optimization)
+.venv/bin/python3 fetch_transcripts.py --csv data/04_enriched.csv --cookies cookies.txt --burst-mode
+```

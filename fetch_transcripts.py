@@ -5,6 +5,8 @@ import logging
 import argparse
 import glob
 import pandas as pd
+import requests
+import http.cookiejar
 from urllib.parse import urlparse, parse_qs
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from youtube_transcript_api.formatters import TextFormatter
@@ -35,10 +37,22 @@ class TranscriptFetcher:
         else:
              self.min_sleep = 5.0 if self.safe_mode else 2.0
 
-        if max_sleep is not None:
-             self.max_sleep = float(max_sleep)
-        else:
-             self.max_sleep = 10.0 if self.safe_mode else 5.0
+        # Configure Session with Cookies if provided
+        self.http_session = requests.Session()
+        self.http_session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        })
+        
+        if self.cookie_file and os.path.exists(self.cookie_file):
+            try:
+                cj = http.cookiejar.MozillaCookieJar(self.cookie_file)
+                cj.load(ignore_discard=True, ignore_expires=True)
+                self.http_session.cookies = cj
+                logging.info(f"Loaded cookies from {self.cookie_file} for Main API")
+            except Exception as e:
+                logging.error(f"Failed to load cookie file: {e}")
+
+        self.yt_api = YouTubeTranscriptApi(http_client=self.http_session)
 
     def get_video_id(self, url):
         """Extracts video ID from various YouTube URL formats."""
@@ -211,20 +225,41 @@ class TranscriptFetcher:
         
         return False
 
-    def process_list(self, urls):
+    def process_list(self, urls, burst_mode=False):
         count = 0
         total = len(urls)
         
+        # Burst settings
+        batch_size = 5
+        cooldown_time = 60
+        processed_in_batch = 0
+
         for url in urls:
             count += 1
             logging.info(f"Processing {count}/{total}: {url}")
             
+            # Check if file exists
+            video_id = self.get_video_id(url)
+            if video_id:
+                outfile = os.path.join(self.output_dir, f"{video_id}.txt")
+                if os.path.exists(outfile) and os.path.getsize(outfile) > 0:
+                     logging.info(f"Skipping {video_id} (already exists)")
+                     continue
+            
             self.fetch_one(url)
             
-            # Jittered sleep
-            sleep_time = random.uniform(self.min_sleep, self.max_sleep)
-            logging.info(f"Sleeping {sleep_time:.2f}s...")
-            time.sleep(sleep_time)
+            # Sleep Logic
+            processed_in_batch += 1
+            
+            if burst_mode and processed_in_batch >= batch_size:
+                logging.info(f"Batch limit ({batch_size}) reached. Cooling down for {cooldown_time}s...")
+                time.sleep(cooldown_time)
+                processed_in_batch = 0 # Reset batch counter
+            else:
+                # Jittered sleep (standard)
+                sleep_time = random.uniform(self.min_sleep, self.max_sleep)
+                logging.info(f"Sleeping {sleep_time:.2f}s...")
+                time.sleep(sleep_time)
 
 def main():
     parser = argparse.ArgumentParser(description="Fetch YouTube transcripts without login.")
@@ -236,6 +271,7 @@ def main():
     parser.add_argument("--safe", action="store_true", help="Enable Safe Mode: no api translation, moderate delays (5-10s)")
     parser.add_argument("--min-sleep", type=float, help="Minimum sleep time in seconds")
     parser.add_argument("--max-sleep", type=float, help="Maximum sleep time in seconds")
+    parser.add_argument("--burst-mode", action="store_true", help="Enable Burst Mode: 5 videos then 60s sleep")
     
     args = parser.parse_args()
     
@@ -251,14 +287,14 @@ def main():
             "https://www.youtube.com/watch?v=jNQXAC9IVRw", # Me at the zoo (Short, likely has subs)
             "https://www.youtube.com/watch?v=9bZkp7q19f0", # Gangnam Style (Popular, has subs)
         ]
-        fetcher.process_list(test_urls)
+        fetcher.process_list(test_urls, burst_mode=args.burst_mode)
     elif args.url:
-        fetcher.process_list([args.url])
+        fetcher.process_list([args.url], burst_mode=args.burst_mode)
     elif args.file:
         if os.path.exists(args.file):
             with open(args.file, 'r') as f:
                 urls = [line.strip() for line in f if line.strip()]
-            fetcher.process_list(urls)
+            fetcher.process_list(urls, burst_mode=args.burst_mode)
         else:
             logging.error(f"File not found: {args.file}")
     elif args.csv:
@@ -269,11 +305,11 @@ def main():
                      # Use VideoID directly
                      urls = df['VideoID'].dropna().astype(str).tolist()
                      logging.info(f"Loaded {len(urls)} VideoIDs from {args.csv}")
-                     fetcher.process_list(urls)
+                     fetcher.process_list(urls, burst_mode=args.burst_mode)
                 elif 'Link' in df.columns:
                      urls = df['Link'].dropna().astype(str).tolist()
                      logging.info(f"Loaded {len(urls)} Links from {args.csv}")
-                     fetcher.process_list(urls)
+                     fetcher.process_list(urls, burst_mode=args.burst_mode)
                 else:
                      logging.error(f"CSV must contain 'VideoID' or 'Link' column. Found: {df.columns.tolist()}")
             except Exception as e:
