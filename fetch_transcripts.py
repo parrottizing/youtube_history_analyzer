@@ -21,14 +21,20 @@ logging.basicConfig(
 )
 
 class TranscriptFetcher:
-    def __init__(self, output_dir="data/transcripts", cookie_file=None):
+    def __init__(self, output_dir="data/transcripts", cookie_file=None, safe_mode=False):
         self.output_dir = output_dir
         self.cookie_file = cookie_file
+        self.safe_mode = safe_mode
+        self.yt_api = YouTubeTranscriptApi()
+        
         os.makedirs(self.output_dir, exist_ok=True)
         # Random sleep range to avoid 429
-        self.min_sleep = 2.0
-        self.max_sleep = 5.0
-        self.yt_api = YouTubeTranscriptApi()
+        if self.safe_mode:
+            self.min_sleep = 20.0
+            self.max_sleep = 40.0
+        else:
+            self.min_sleep = 2.0
+            self.max_sleep = 5.0
 
     def get_video_id(self, url):
         """Extracts video ID from various YouTube URL formats."""
@@ -71,8 +77,8 @@ class TranscriptFetcher:
                 logging.warning(f"No transcripts found at all for {video_id}")
                 return None
 
-            # 3. Try to translate it to English
-            if first_transcript.is_translatable:
+            # 3. Try to translate it to English (SKIP IN SAFE MODE)
+            if not self.safe_mode and first_transcript.is_translatable:
                 try:
                     translated = first_transcript.translate('en')
                     logging.info(f"Translated {first_transcript.language_code} to English for {video_id}")
@@ -168,9 +174,9 @@ class TranscriptFetcher:
             logging.error(f"Invalid URL: {start_url}")
             return False
 
-        # Exponential backoff parameters
+         # Exponential backoff parameters
         retries = 3
-        wait_time = 10 
+        wait_time = 300 if self.safe_mode else 10 
 
         for attempt in range(retries):
             try:
@@ -223,10 +229,11 @@ def main():
     parser.add_argument("--csv", type=str, help="Path to CSV file containing 'VideoID' or 'Link' column")
     parser.add_argument("--url", type=str, help="Single URL to fetch")
     parser.add_argument("--cookies", type=str, help="Path to cookies.txt file")
+    parser.add_argument("--safe", action="store_true", help="Enable Safe Mode: slower, no translation, less bans")
     
     args = parser.parse_args()
     
-    fetcher = TranscriptFetcher(cookie_file=args.cookies)
+    fetcher = TranscriptFetcher(cookie_file=args.cookies, safe_mode=args.safe)
     
     if args.test:
         test_urls = [

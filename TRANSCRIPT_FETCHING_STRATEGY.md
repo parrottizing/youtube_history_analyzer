@@ -3,46 +3,43 @@
 ## Objective
 Fetch transcripts for ~150 YouTube videos quickly, reliably, and without polluting the user's watch history.
 
-## Constraints & Requirements
-*   **Speed**: Bulk processing (~150 videos) should happen in minutes.
-*   **Privacy**: MUST NOT affect YouTube watch history.
-*   **Reliability**: Minimize 429 (Too Many Requests) errors and IP bans.
-*   **Context**: Codebase context was broken; built a fresh, standalone solution (`fetch_transcripts.py`).
+## Status Update (2026-02-02) - CRITICAL FINDINGS
+The initial "Hybrid Approach" encountered significant **Rate Limiting (HTTP 429)**.
 
-## Implementation Details (Final)
+### Diagnosis of Failure
+1.  **Translation Trigger**: Attempting to translate transcripts via the API (e.g., Russian -> English) appears to be a high-risk activity that triggers YouTube's bot detection almost immediately.
+2.  **IP Reputation**: Once the IP is flagged by the API, fallback requests via `yt-dlp` (even with cookies) also start failing with 429 errors.
+3.  **Aggressive Timing**: The previous delay (2-5 seconds) was too short for a flagged IP.
 
-### 1. Hybrid Fetching Approach
-We implemented a robust `TranscriptFetcher` class in `fetch_transcripts.py` that prioritizes speed but has deep fallbacks:
-*   **Step 1: `youtube_transcript_api` (Instance Mode)**:
-    *   Instantiates `YouTubeTranscriptApi` (required for v0.6+).
-    *   Uses `.list(video_id)` to get available transcripts.
-    *   **Cookie-less by default**: Prevents history pollution.
-*   **Step 2: Fallback to `yt-dlp`**:
-    *   If API fails (e.g., severe IP blocking beyond simple rate limiting), we invoke `yt-dlp`.
-    *   **Cookie Support**: Added `--cookies` argument. This is critical for cloud environments (AWS/GCP/VPS) where YouTube blocks anonymous requests. `yt-dlp` with cookies bypasses this while subtitle fetching generally doesn't count as a "watch".
+## Revised Strategy: "Safe Mode"
 
-### 2. Smart Language Handling
-To maximize success rate (avoiding empty files), we implemented a cascading language logic:
-1.  **Direct English**: Search for manually created or auto-generated 'en' transcript.
-2.  **Any Transcript**: If English missing, grab *any* available transcript (e.g., the original language).
-3.  **Translation**: Attempt to translate that transcript to English via the API.
-4.  **Original Fallback**: If translation fails, save the original text (e.g., Korean) so we at least have data.
+To bypass these blocks, we must pivot from "Maximum Speed" to "Maximum Stealth".
 
-### 3. Data Source Integration
-*   **Input File**: The script reads from `data/04_enriched.csv`.
-*   **Columns**: Identifies videos using `VideoID` or `Link` columns.
-*   **Output**: Saves plain text files to `data/transcripts/{VideoID}.txt`.
+### 1. Disable API Translation
+*   **Why**: The translation endpoint seems to have stricter rate limits.
+*   **New Logic**: Fetch the **original language** transcript only. Do not attempt to translate it during the download phase. We can translate it locally later using an LLM or other tool, which is safer.
 
-### 4. Error Handling & Rate Limits
-*   **Exponential Backoff**: On 429 (Too Many Requests) errors.
-*   **Jittered Sleep**: Random delays (2-5s) between requests.
-*   **Detection**: String matching for "Too many requests" in exception messages (since `youtube_transcript_api` v0.6+ dropped the explicit exception class).
+### 2. Increase Delays Significantly
+*   **Standard Sleep**: Increase from ~3s to **20-40 seconds**.
+*   **Cooldown**: If a 429 is hit, sleep for **5 minutes** (not just 10s).
 
-## Usage
-```bash
-# Basic run (if IP is clean)
-python3 fetch_transcripts.py --csv data/04_enriched.csv
+### 3. Processing Order
+*   Process the list slowly in the background. ~150 videos * 30s = ~75 minutes. This is slower but reliable.
 
-# Run with cookies (Recommended for 100% success)
-python3 fetch_transcripts.py --csv data/04_enriched.csv --cookies cookies.txt
-```
+### 4. Alternative Backup: Anonymous Browser
+*   If the Python API remains blocked, the next step is **Selenium/Playwright in Incognito Mode**.
+    *   **Pros**: Emulates a real user (executes JS), bypasses API limits.
+    *   **Privacy**: Incognito mode ensures NO watch history pollution.
+    *   **Cons**: Requires browser overhead, slower.
+
+## Implementation Plan (Step-by-Step)
+1.  **Modify `fetch_transcripts.py`**:
+    *   Add `--safe` flag.
+    *   Remove translation attempts (fetch only `en` or `original`).
+    *   Increase default sleep to 30s.
+    *   Implement "Cool Down" blocks (sleep 300s on 429).
+
+2.  **User Action**:
+    *   Stop current script.
+    *   Wait ~30 mins for IP block to expire.
+    *   Run with `--safe` flag.
