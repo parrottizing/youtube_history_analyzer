@@ -1,0 +1,86 @@
+2026-02-02 19:34:29,658 - INFO - Processing 1/2: https://www.youtube.com/watch?v=jNQXAC9IVRw
+2026-02-02 19:34:29,659 - ERROR - Unexpected API error for jNQXAC9IVRw: type object 'YouTubeTranscriptApi' has no attribute 'list_transcripts'
+2026-02-02 19:34:29,659 - INFO - Attempting yt-dlp fallback for jNQXAC9IVRw...
+2026-02-02 19:34:32,975 - WARNING - Could not fetch transcript for jNQXAC9IVRw with any method.
+2026-02-02 19:34:32,975 - INFO - Sleeping 4.87s...
+2026-02-02 19:34:37,854 - INFO - Processing 2/2: https://www.youtube.com/watch?v=9bZkp7q19f0
+2026-02-02 19:34:37,855 - ERROR - Unexpected API error for 9bZkp7q19f0: type object 'YouTubeTranscriptApi' has no attribute 'list_transcripts'
+2026-02-02 19:34:37,855 - INFO - Attempting yt-dlp fallback for 9bZkp7q19f0...
+2026-02-02 19:34:40,370 - WARNING - Could not fetch transcript for 9bZkp7q19f0 with any method.
+2026-02-02 19:34:40,370 - INFO - Sleeping 4.36s...
+2026-02-02 19:36:48,855 - INFO - Processing 1/2: https://www.youtube.com/watch?v=jNQXAC9IVRw
+2026-02-02 19:36:50,414 - ERROR - Unexpected API error for jNQXAC9IVRw: 
+Could not retrieve a transcript for the video https://www.youtube.com/watch?v=jNQXAC9IVRw! This is most likely caused by:
+
+YouTube is blocking requests from your IP. This usually is due to one of the following reasons:
+- You have done too many requests and your IP has been blocked by YouTube
+- You are doing requests from an IP belonging to a cloud provider (like AWS, Google Cloud Platform, Azure, etc.). Unfortunately, most IPs from cloud providers are blocked by YouTube.
+
+Ways to work around this are explained in the "Working around IP bans" section of the README (https://github.com/jdepoix/youtube-transcript-api?tab=readme-ov-file#working-around-ip-bans-requestblocked-or-ipblocked-exception).
+
+
+If you are sure that the described cause is not responsible for this error and that a transcript should be retrievable, please create an issue at https://github.com/jdepoix/youtube-transcript-api/issues. Please add which version of youtube_transcript_api you are using and provide the information needed to replicate the error. Also make sure that there are no open issues which already describe your problem!
+2026-02-02 19:36:50,414 - INFO - Attempting yt-dlp fallback for jNQXAC9IVRw...
+2026-02-02 19:36:53,836 - WARNING - Could not fetch transcript for jNQXAC9IVRw with any method.
+2026-02-02 19:36:53,836 - INFO - Sleeping 2.95s...
+2026-02-02 19:36:56,793 - INFO - Processing 2/2: https://www.youtube.com/watch?v=9bZkp7q19f0
+2026-02-02 19:36:58,083 - INFO - No manual English transcript for 9bZkp7q19f0, trying auto-generated...
+2026-02-02 19:36:58,084 - WARNING - API Method failed for 9bZkp7q19f0: 
+Could not retrieve a transcript for the video https://www.youtube.com/watch?v=9bZkp7q19f0! This is most likely caused by:
+
+No transcripts were found for any of the requested language codes: dict_keys([])
+
+For this video (9bZkp7q19f0) transcripts are available in the following languages:
+
+(MANUALLY CREATED)
+None
+
+(GENERATED)
+ - ko ("Korean (auto-generated)")
+
+(TRANSLATION LANGUAGES)
+None
+
+If you are sure that the described cause is not responsible for this error and that a transcript should be retrievable, please create an issue at https://github.com/jdepoix/youtube-transcript-api/issues. Please add which version of youtube_transcript_api you are using and provide the information needed to replicate the error. Also make sure that there are no open issues which already describe your problem!
+2026-02-02 19:36:58,084 - INFO - Attempting yt-dlp fallback for 9bZkp7q19f0...
+2026-02-02 19:37:01,589 - WARNING - Could not fetch transcript for 9bZkp7q19f0 with any method.
+2026-02-02 19:37:01,589 - INFO - Sleeping 3.93s...
+2026-02-02 19:38:31,702 - INFO - Processing 1/2: https://www.youtube.com/watch?v=jNQXAC9IVRw
+2026-02-02 19:38:33,568 - INFO - Saved transcript for jNQXAC9IVRw to data/transcripts/jNQXAC9IVRw.txt
+2026-02-02 19:38:33,569 - INFO - Sleeping 4.61s...
+2026-02-02 19:38:38,181 - INFO - Processing 2/2: https://www.youtube.com/watch?v=9bZkp7q19f0
+2026-02-02 19:38:39,918 - INFO - No manual English transcript for 9bZkp7q19f0, trying auto-generated...
+2026-02-02 19:38:39,918 - WARNING - API Method failed for 9bZkp7q19f0: 
+Could not retrieve a transcript for the video https://www.youtube.com/watch?v=9bZkp7q19f0! This is most likely caused by:
+
+No transcripts were found for any of the requested language codes: dict_keys([])
+
+For this video (9bZkp7q19f0) transcripts are available in the following languages:
+
+(MANUALLY CREATED)
+None
+
+(GENERATED)
+ - ko ("Korean (auto-generated)")
+
+(TRANSLATION LANGUAGES)
+None
+
+If you are sure that the described cause is not responsible for this error and that a transcript should be retrievable, please create an issue at https://github.com/jdepoix/youtube-transcript-api/issues. Please add which version of youtube_transcript_api you are using and provide the information needed to replicate the error. Also make sure that there are no open issues which already describe your problem!
+2026-02-02 19:38:39,918 - INFO - Attempting yt-dlp fallback for 9bZkp7q19f0...
+2026-02-02 19:38:44,305 - WARNING - Could not fetch transcript for 9bZkp7q19f0 with any method.
+2026-02-02 19:38:44,305 - INFO - Sleeping 4.15s...
+2026-02-02 19:40:39,465 - INFO - Processing 1/2: https://www.youtube.com/watch?v=jNQXAC9IVRw
+2026-02-02 19:40:41,586 - INFO - Saved transcript for jNQXAC9IVRw to data/transcripts/jNQXAC9IVRw.txt
+2026-02-02 19:40:41,586 - INFO - Sleeping 3.29s...
+2026-02-02 19:40:44,880 - INFO - Processing 2/2: https://www.youtube.com/watch?v=9bZkp7q19f0
+2026-02-02 19:40:46,623 - INFO - Falling back to original language ko for 9bZkp7q19f0
+2026-02-02 19:40:58,327 - INFO - Saved transcript for 9bZkp7q19f0 to data/transcripts/9bZkp7q19f0.txt
+2026-02-02 19:40:58,328 - INFO - Sleeping 2.20s...
+2026-02-02 19:42:10,189 - INFO - Processing 1/2: https://www.youtube.com/watch?v=jNQXAC9IVRw
+2026-02-02 19:42:12,065 - INFO - Saved transcript for jNQXAC9IVRw to data/transcripts/jNQXAC9IVRw.txt
+2026-02-02 19:42:12,065 - INFO - Sleeping 3.08s...
+2026-02-02 19:42:15,146 - INFO - Processing 2/2: https://www.youtube.com/watch?v=9bZkp7q19f0
+2026-02-02 19:42:16,627 - INFO - Falling back to original language ko for 9bZkp7q19f0
+2026-02-02 19:42:16,778 - INFO - Saved transcript for 9bZkp7q19f0 to data/transcripts/9bZkp7q19f0.txt
+2026-02-02 19:42:16,779 - INFO - Sleeping 4.99s...
