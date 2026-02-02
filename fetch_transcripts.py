@@ -21,20 +21,24 @@ logging.basicConfig(
 )
 
 class TranscriptFetcher:
-    def __init__(self, output_dir="data/transcripts", cookie_file=None, safe_mode=False):
+    def __init__(self, output_dir="data/transcripts", cookie_file=None, safe_mode=False, min_sleep=None, max_sleep=None):
         self.output_dir = output_dir
         self.cookie_file = cookie_file
         self.safe_mode = safe_mode
         self.yt_api = YouTubeTranscriptApi()
         
         os.makedirs(self.output_dir, exist_ok=True)
-        # Random sleep range to avoid 429
-        if self.safe_mode:
-            self.min_sleep = 20.0
-            self.max_sleep = 40.0
+        
+        # Set sleep times
+        if min_sleep is not None:
+            self.min_sleep = float(min_sleep)
         else:
-            self.min_sleep = 2.0
-            self.max_sleep = 5.0
+             self.min_sleep = 5.0 if self.safe_mode else 2.0
+
+        if max_sleep is not None:
+             self.max_sleep = float(max_sleep)
+        else:
+             self.max_sleep = 10.0 if self.safe_mode else 5.0
 
     def get_video_id(self, url):
         """Extracts video ID from various YouTube URL formats."""
@@ -229,11 +233,18 @@ def main():
     parser.add_argument("--csv", type=str, help="Path to CSV file containing 'VideoID' or 'Link' column")
     parser.add_argument("--url", type=str, help="Single URL to fetch")
     parser.add_argument("--cookies", type=str, help="Path to cookies.txt file")
-    parser.add_argument("--safe", action="store_true", help="Enable Safe Mode: slower, no translation, less bans")
+    parser.add_argument("--safe", action="store_true", help="Enable Safe Mode: no api translation, moderate delays (5-10s)")
+    parser.add_argument("--min-sleep", type=float, help="Minimum sleep time in seconds")
+    parser.add_argument("--max-sleep", type=float, help="Maximum sleep time in seconds")
     
     args = parser.parse_args()
     
-    fetcher = TranscriptFetcher(cookie_file=args.cookies, safe_mode=args.safe)
+    fetcher = TranscriptFetcher(
+        cookie_file=args.cookies, 
+        safe_mode=args.safe,
+        min_sleep=args.min_sleep,
+        max_sleep=args.max_sleep
+    )
     
     if args.test:
         test_urls = [

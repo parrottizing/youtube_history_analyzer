@@ -33,8 +33,7 @@ To bypass these blocks, we must pivot from "Maximum Speed" to "Maximum Stealth".
     *   **Cons**: Requires browser overhead, slower.
 
 ## Implementation Plan (Step-by-Step)
-1.  **Modify `fetch_transcripts.py`**:
-    *   Add `--safe` flag.
+1.    .venv/bin/python3 fetch_transcripts.py --csv data/04_enriched.csv --cookies cookies.txt --safe` flag.
     *   Remove translation attempts (fetch only `en` or `original`).
     *   Increase default sleep to 30s.
     *   Implement "Cool Down" blocks (sleep 300s on 429).
