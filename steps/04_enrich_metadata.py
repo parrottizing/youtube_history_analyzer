@@ -3,6 +3,7 @@ import csv
 import os
 import sys
 import json
+import re
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -14,6 +15,29 @@ try:
     from utils.env_loader import load_env
 except ImportError:
     from utils.env_loader import load_env
+
+def parse_iso_duration(duration_str):
+    """
+    Parses ISO 8601 duration (e.g. PT1H2M10S) to HH:MM:SS or MM:SS.
+    """
+    if not duration_str:
+        return ""
+        
+    pattern = re.compile(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?')
+    match = pattern.match(duration_str)
+    
+    if not match:
+        return duration_str
+        
+    h, m, s = match.groups()
+    h = int(h) if h else 0
+    m = int(m) if m else 0
+    s = int(s) if s else 0
+    
+    if h > 0:
+        return f"{h}:{m:02d}:{s:02d}"
+    else:
+        return f"{m}:{s:02d}"
 
 def fetch_video_details_batch(video_ids, api_key):
     """
@@ -44,7 +68,7 @@ def fetch_video_details_batch(video_ids, api_key):
                 
                 results[vid] = {
                     "Channel": snippet.get("channelTitle"),
-                    "Duration": content_details.get("duration"), # ISO 8601 format (PT1H2M10S)
+                    "Duration": parse_iso_duration(content_details.get("duration")), # Converted from ISO 8601
                     "OriginalLanguage": snippet.get("defaultAudioLanguage") or snippet.get("defaultLanguage") or "Unknown",
                     "Title": snippet.get("title") # Update title from API as it's cleaner than scraped
                 }
