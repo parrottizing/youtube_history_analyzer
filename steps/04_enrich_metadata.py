@@ -108,7 +108,7 @@ def main():
             row['Duration'] = details.get('Duration', '')
             row['OriginalLanguage'] = details.get('OriginalLanguage', '')
             # Optional: Overwrite title if API title is preferred
-            # row['Title'] = details.get('Title', row['Title']) 
+            row['Title'] = details.get('Title', row['Title']) 
         else:
             # Maybe deleted video or private?
             row['Channel'] = "Unknown"

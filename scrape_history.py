@@ -141,47 +141,34 @@ def scrape_history():
                     # Robust approach: Find links by URL pattern
                     # Standard videos: /watch?v=...
                     # Shorts: /shorts/...
-                    video_elements = section.find_elements(By.CSS_SELECTOR, "a[href*='/watch?v='], a[href*='/shorts/']")
-                    
-                    # Filter out non-title links (e.g. timestamps or thumbnails might share href)
-                    # Use a set to avoid duplicates within the section processing
-                    
-                    # Usually the main title link has id "video-title" or class "ytd-video-renderer"
-                    # But raw href check is safest, then we dedup.
+                    # Refined selector to target only the main video title
+                    video_elements = section.find_elements(By.CSS_SELECTOR, "a#video-title")
                     
                     for title_el in video_elements:
                         try:
                             title = title_el.text.strip()
-                            link = title_el.get_attribute("href")
+                            raw_link = title_el.get_attribute("href")
                             
-                            # Skip empty titles
-                            if not title or not link:
+                            if not title or not raw_link:
                                 continue
+
+                            # Clean up URL (remove query params)
+                            if "/watch?v=" in raw_link:
+                                vid_id = raw_link.split("v=")[1].split("&")[0]
+                                link = f"https://www.youtube.com/watch?v={vid_id}"
+                            elif "/shorts/" in raw_link:
+                                vid_id = raw_link.split("/shorts/")[1].split("?")[0]
+                                link = f"https://www.youtube.com/shorts/{vid_id}"
+                            else:
+                                link = raw_link
                             
-                            # Clean up URL (remove connection params usually not needed for ID)
-                            # but keeping full link is fine.
-                            
-                            # Store candidate
-                            # We will dedupe later within the section or globally?
-                            # Let's dedupe within the section to avoid duplicates processing
-                            
-                            # If we already have this link in this section, check if new title is better (longer)
-                            # We need a temp dict for this section
-                            # But wait, 'collected_videos' is a list. And 'processed_links' is global.
-                            
-                            # Issue: processed_links prevents us from updating a bad title (timestamp) with a good one.
-                            # Solution: Use a dictionary for processed_links mapping Link -> Index in collected_videos
-                            
+                            # Deduplicate
                             if link in processed_links_map:
-                                # We have seen this video. Check if current title is better.
                                 existing_idx = processed_links_map[link]
                                 existing_title = collected_videos[existing_idx]['Title']
-                                
-                                # Heuristic: Longer title is better (avoids durations like "10:00")
                                 if len(title) > len(existing_title):
                                     collected_videos[existing_idx]['Title'] = title
                             else:
-                                # New video
                                 processed_links_map[link] = len(collected_videos)
                                 collected_videos.append({
                                     "Date": section_date,

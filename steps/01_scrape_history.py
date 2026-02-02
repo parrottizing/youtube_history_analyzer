@@ -123,22 +123,30 @@ def scrape_history():
                         break 
 
                     # Extract videos
-                    # Robust selector for videos (filtering shorts via URL check just in case the UI filter missed some)
-                    video_elements = section.find_elements(By.CSS_SELECTOR, "a[href*='/watch?v=']")
+                    # Refined selector to target only the main video title
+                    video_elements = section.find_elements(By.CSS_SELECTOR, "a#video-title")
                     
                     print(f"    Section '{header_el}': Found {len(video_elements)} potential videos.")
 
                     for title_el in video_elements:
                         try:
                             title = title_el.text.strip()
-                            link = title_el.get_attribute("href")
+                            raw_link = title_el.get_attribute("href")
                             
-                            if not title or not link:
+                            if not title or not raw_link:
                                 continue
                             
-                            # Double check it is not a short (if UI filter failed)
-                            if "/shorts/" in link:
-                                continue
+                            # Clean up URL (remove query params)
+                            # We only care about the video ID for uniqueness
+                            # Standard format: https://www.youtube.com/watch?v=ID
+                            if "/watch?v=" in raw_link:
+                                vid_id = raw_link.split("v=")[1].split("&")[0]
+                                link = f"https://www.youtube.com/watch?v={vid_id}"
+                            elif "/shorts/" in raw_link:
+                                vid_id = raw_link.split("/shorts/")[1].split("?")[0]
+                                link = f"https://www.youtube.com/shorts/{vid_id}"
+                            else:
+                                link = raw_link # Fallback
                             
                             if link in visited_links:
                                 continue
