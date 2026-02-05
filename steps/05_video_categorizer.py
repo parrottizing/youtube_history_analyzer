@@ -66,6 +66,8 @@ Description:
 Tags:
 {tags}
 
+If it is connected to AI in any way (AI tools, models, LLMs, prompts, coding with AI, AI news, ML, etc.), choose "AI and coding".
+
 Based on the title, description, and tags, categorize this video into ONE of these categories ONLY:
 AI and coding, F1, Football, Basketball, News, Humor, Popular Science, History, Superheroes, Other
 
