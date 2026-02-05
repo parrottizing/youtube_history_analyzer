@@ -30,7 +30,7 @@ def main():
         "steps/02_extract_ids.py",
         "steps/03_deduplicate.py",
         "steps/04_enrich_metadata.py",
-        "steps/05_transcript_categorizer.py",
+        "steps/05_video_categorizer.py",
         "steps/06_visualize.py"
     ]
     

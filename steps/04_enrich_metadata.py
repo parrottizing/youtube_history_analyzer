@@ -8,6 +8,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import time
+import re
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -39,6 +40,16 @@ def parse_iso_duration(duration_str):
     else:
         return f"{m}:{s:02d}"
 
+
+def clean_text(value):
+    if value is None:
+        return ""
+    text = str(value)
+    # Remove control chars (including newlines/tabs) and collapse whitespace
+    text = re.sub(r"[\x00-\x1f\x7f]", " ", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
 def fetch_video_details_batch(video_ids, api_key):
     """
     Fetches details for a list of video IDs (max 50) using YouTube Data API.
@@ -66,11 +77,18 @@ def fetch_video_details_batch(video_ids, api_key):
                 snippet = item.get("snippet", {})
                 content_details = item.get("contentDetails", {})
                 
+                tags_list = snippet.get("tags") or []
+                tags_text = "; ".join(tags_list)
+
                 results[vid] = {
-                    "Channel": snippet.get("channelTitle"),
+                    "Channel": clean_text(snippet.get("channelTitle")),
                     "Duration": parse_iso_duration(content_details.get("duration")), # Converted from ISO 8601
-                    "OriginalLanguage": snippet.get("defaultAudioLanguage") or snippet.get("defaultLanguage") or "Unknown",
-                    "Title": snippet.get("title") # Update title from API as it's cleaner than scraped
+                    "OriginalLanguage": clean_text(
+                        snippet.get("defaultAudioLanguage") or snippet.get("defaultLanguage") or "Unknown"
+                    ),
+                    "Title": clean_text(snippet.get("title")), # Update title from API as it's cleaner than scraped
+                    "Description": clean_text(snippet.get("description") or ""),
+                    "Tags": clean_text(tags_text)
                 }
         return results
         
@@ -132,17 +150,38 @@ def main():
             row['Duration'] = details.get('Duration', '')
             row['OriginalLanguage'] = details.get('OriginalLanguage', '')
             # Optional: Overwrite title if API title is preferred
-            row['Title'] = details.get('Title', row['Title']) 
+            row['Title'] = details.get('Title', row['Title'])
+            row['Description'] = details.get('Description', '')
+            row['Tags'] = details.get('Tags', '')
         else:
             # Maybe deleted video or private?
             row['Channel'] = "Unknown"
             row['Duration'] = ""
             row['OriginalLanguage'] = "Unknown"
-            
+            row['Description'] = ""
+            row['Tags'] = ""
+
+        # Ensure key text fields are single-line and clean
+        row['Title'] = clean_text(row.get('Title', ''))
+        row['Channel'] = clean_text(row.get('Channel', ''))
+        row['OriginalLanguage'] = clean_text(row.get('OriginalLanguage', ''))
+        row['Description'] = clean_text(row.get('Description', ''))
+        row['Tags'] = clean_text(row.get('Tags', ''))
+        
         enriched_rows.append(row)
         
     # Write output
-    fieldnames = ['Date', 'Title', 'Link', 'VideoID', 'Channel', 'Duration', 'OriginalLanguage']
+    fieldnames = [
+        'Date',
+        'Title',
+        'Channel',
+        'Duration',
+        'OriginalLanguage',
+        'VideoID',
+        'Link',
+        'Description',
+        'Tags'
+    ]
     
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
