@@ -152,8 +152,14 @@ def main():
         for lang in languages:
             values = data[lang].values
             bars = plt.bar(x, values, width, bottom=bottom, label=lang, color=language_colors[lang], alpha=0.85)
-            annotate_stacked(plt.gca(), x, values, bottom, lambda v: f"{int(v)}", min_display=0)
+            annotate_stacked(plt.gca(), x, values, bottom, lambda v: f"{int(v)}", min_display=999999)
             bottom = bottom + values
+
+        for idx, total in enumerate(channel_totals.loc[top_channels]):
+            plt.text(idx, total + 0.05, f"{int(total)}", ha="center", va="bottom", fontweight="bold", fontsize=10)
+
+        max_total = channel_totals.loc[top_channels].max()
+        plt.ylim(0, max_total * 1.05)
 
         plt.title("Top 10 Channels by Video Count", fontsize=16, fontweight="bold", pad=20)
         plt.xlabel("Channel", fontsize=12, fontweight="bold")
@@ -184,7 +190,7 @@ def main():
             values_seconds = data[lang].values
             values_hours = values_seconds / 3600
             plt.bar(x, values_hours, width, bottom=bottom, label=lang, color=language_colors[lang], alpha=0.85)
-            annotate_stacked_time(plt.gca(), x, values_seconds, bottom, min_display_hours=0.1)
+            annotate_stacked_time(plt.gca(), x, values_seconds, bottom, min_display_hours=9999)
             bottom = bottom + values_hours
 
         for idx, total_seconds in enumerate(channel_time_totals.loc[top_time_channels]):
