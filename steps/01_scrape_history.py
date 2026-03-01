@@ -57,7 +57,7 @@ def scrape_history():
         time.sleep(3)
 
         # Login Check
-        if " accounts.google.com" in driver.current_url or "Sign in" in driver.page_source:
+        if "accounts.google.com" in driver.current_url or "Sign in" in driver.page_source:
              print("Please log in to YouTube in the opened browser window.")
              print("Waiting for login...")
              for _ in range(120):
@@ -123,14 +123,27 @@ def scrape_history():
                         break 
 
                     # Extract videos
-                    # Refined selector to target only the main video title
-                    video_elements = section.find_elements(By.CSS_SELECTOR, "a#video-title")
+                    # Support both old and new YouTube History layouts:
+                    # - old: a#video-title
+                    # - new: a.yt-lockup-metadata-view-model__title
+                    video_elements = section.find_elements(
+                        By.CSS_SELECTOR,
+                        (
+                            "a#video-title, "
+                            "a.yt-lockup-metadata-view-model__title[href*='watch?v='], "
+                            "a.yt-lockup-metadata-view-model__title[href*='/shorts/'], "
+                            "a.yt-lockup-metadata-view-model__title[href*='youtu.be/']"
+                        ),
+                    )
                     
                     print(f"    Section '{header_el}': Found {len(video_elements)} potential videos.")
 
                     for title_el in video_elements:
                         try:
                             title = title_el.text.strip()
+                            if not title:
+                                # Fallback for cases where visible text is absent.
+                                title = (title_el.get_attribute("aria-label") or "").strip()
                             raw_link = title_el.get_attribute("href")
                             
                             if not title or not raw_link:
